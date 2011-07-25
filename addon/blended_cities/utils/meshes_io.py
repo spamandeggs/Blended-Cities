@@ -1,3 +1,7 @@
+##\file
+# meshes_io.py
+# set of functions used by builders
+
 import bpy
 import mathutils
 from mathutils import *
@@ -174,13 +178,15 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
     mesh.update()
     '''
     # material slots
-    for matname in matslots :
-        mat = bpy.data.materials[matname]
-        mesh.materials.append(mat)
+    if len(matslots) > 0 :
+        for matname in matslots :
+            mat = bpy.data.materials[matname]
+            mesh.materials.append(mat)
 
     # map a material to each face
-    for fi,f in enumerate(mesh.faces) :
-        f.material_index = mats[fi]
+    if len(mats) > 0 :
+        for fi,f in enumerate(mesh.faces) :
+            f.material_index = mats[fi]
 
     # uv
     # ...
@@ -194,11 +200,13 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
     return ob
  
 
-# from length, an int defining a number of verts of a perimeter outline
-# offset, definins the vert ID of the first vert
-# todo : loop, the number of layer
-# build faces between ordered 'lines' of vertices of a closed shape
+
 def facesLoop(offset,length,loop=1) :
+    '''from length, an int defining a number of verts of a perimeter outline
+    offset, definins the vert ID of the first vert
+    todo : loop, the number of layer
+    build faces between ordered 'lines' of vertices of a closed shape
+    '''
     faces = []
     for v1 in range(length) :
         if v1 == length - 1 : v2 = 0
@@ -207,10 +215,10 @@ def facesLoop(offset,length,loop=1) :
     return faces
 
 
-# from a list or a list of lists containing verts coords
-# returns a counter :
-# key = every z coord
-# value = nb of verts that have this z coord
+## geometry
+#  @param vertslists a list or a list of lists containing vertices coordinates
+#  @param offset the first vert id of the first vertice
+#  @return a Counter with z coordinates as key and the number of vertices which have that value as value
 def zcoords(vertslists,offset=0) :
     try : test = vertslists[0][0][0]
     except : vertslists = [vertslists]

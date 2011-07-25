@@ -1,0 +1,43 @@
+#examples :
+# these can be parsed directly in the console
+
+city = bpy.context.scene.city
+
+# from an object, retrieve the corresponding element
+obj = bpy.context.active_object
+elm = city.elementGet(obj)
+
+# returns the internal name of the element :
+elm.name
+
+# returns its class :
+elm.className()
+
+# retrieve elements from collection :
+elm = city.elements['buildings.00000']
+elm.className() #'elements'
+
+otl = city.outlines['outlines.00000']
+otl.className() # 'outlines'
+
+blg = city.builders.buildings['buildings.00000']
+blg.className() # 'buildings'
+
+# returns the outline of blg
+blg.peer()
+
+# returns the builder of otl
+otl.peer()
+
+# when it an Element returns the builder too
+elm.peer()
+
+# returns the element as Element
+otl.asElement()
+
+# as outline
+blg.asOutline()
+
+# as builder
+elm.asBuilder()
+

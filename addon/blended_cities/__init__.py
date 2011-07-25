@@ -20,6 +20,7 @@ if textFolder not in sys.path :
     sys.path.insert(0, textFolder)
 '''
 
+
 def register() :
     main.register()
 

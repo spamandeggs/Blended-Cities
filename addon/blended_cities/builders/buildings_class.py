@@ -1,9 +1,21 @@
+##\file
+# the building builder file
+#
+# should act as a reference for other builders files.
+#
+# builders ui can use existing methods (operators, buttons, panels..)
+
 import bpy
 import mathutils
 from mathutils import *
 from blended_cities.bin.class_main import *
 from blended_cities.utils.meshes_io import *
 
+## building builder class
+#
+# should act as a reference for other builders class.
+#
+# builders ui can use existing methods (operators, buttons, panels..)
 class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
     #name = bpy.props.StringProperty()
     attached = bpy.props.StringProperty()   # the perimeter object

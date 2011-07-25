@@ -1,57 +1,48 @@
+##\file
+# class_import.py
+# provide functions to link existing
+# builders classes to
+# bpy.context.scene.city.builders, as for .buildings
+# classes are appended from the builders folder
+
 import bpy
+import sys
+import os
 from blended_cities.bin.class_main import *
 
-# ########################################################
-# set of generic update functions used in builder classes
-# ########################################################
+## seek the builders folders for existing builders classes (and their gui)
+def buildersRegister() :
+    '''seek the builders folders for existing builders classes (and their gui)'''
+    # seek and register
+    mod = sys.modules['blended_cities']
+    builders_dir = mod.__path__[0] + '/builders'
+    builders_list  = []
+    print('. builders :')
+    for file in os.listdir(builders_dir) :
+        if file[-9:] == '_class.py' :
+            classname = 'BC_'+file[0:-9]
+            exec('from blended_cities.builders.%s import *'%file[0:-3],globals())
+            if file[0:-8] + 'ui.py' in os.listdir(builders_dir) :
+                exec('from blended_cities.builders.%s import *'%(file[0:-8] + 'ui'),globals())
+                exec('bpy.utils.register_class(%s)'%(classname + '_panel'),globals())
+            builders_list.append(classname)
+            print('  imported %s'%classname)
+    print()
 
-# this link to the build() method of the current class
-def updateBuild(self,context='') :
-    self.build(True)
-
-
-# ###################################################################
-# from now we can search and register the standalone builders modules
-# ###################################################################
-
-def register_Builders(builders_list) :
-
+    # write the builders class with pointers
     builders_class = 'class BC_builders(bpy.types.PropertyGroup) :\n'
+    for cl in builders_list :
+        exec('bpy.utils.register_class(%s)'%cl)
+        builders_class += '    %s = bpy.props.CollectionProperty(type=%s)\n'%(cl[3:],cl)
 
-    for b in builders_list :
-        
-        exec('bpy.utils.register_class(%s)'%b.__name__)
-        builders_class += '    %s = bpy.props.CollectionProperty(type=%s)\n'%(b.__name__[3:],b.__name__)
-    print(builders_class)
     exec(builders_class,globals())
 
-# load the builders
-# for file in dir x...
-from blended_cities.builders.buildings_class import *
-from blended_cities.builders.buildings_ui import *
-bpy.utils.register_class(BC_buildings_panel)
+    # update dropdown in the main tagging ui
+    class_selector = []
+    class_default  = 'buildings'
+    for cl in builders_list :
+        class_selector.append( (cl[3:],cl[3:],'') )
+    bpy.types.WindowManager.city_builders_dropdown  = bpy.props.EnumProperty( items = class_selector, default = class_default, name = "Builders",  description = "" )
 
-builders_list  = [BC_buildings]
-
-register_Builders(builders_list)
-
-
+buildersRegister()
 bpy.utils.register_class(BC_builders)
-
-'''
-def register() :
-    bpy.utils.register_class(BC_outlines)
-    bpy.utils.register_class(BC_elements)
-
-def unregister() :
-    # for classname in builders_list, exec..
-    bpy.utils.unregister_class(BC_buildings)
-
-    bpy.utils.unregister_class(BC_builders)
-    bpy.utils.unregister_class(BC_outlines)
-    bpy.utils.unregister_class(BC_elements)
-
-    
-if __name__ == '__main__' :
-    register()
-'''

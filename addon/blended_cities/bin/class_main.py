@@ -1,3 +1,10 @@
+##\file
+# class_main.py
+# contains the main collection classes :
+# the elements class that stores every city element
+# the outlines class that store each outline element
+# methods used by builders classes are also inherited from here
+
 import bpy
 import mathutils
 from mathutils import *
@@ -7,37 +14,71 @@ from blended_cities.utils.meshes_io import *
 # set of generic update functions used in builders classes
 # ########################################################
 
+#
 # this link to the build() method of the current class
 def updateBuild(self,context='') :
     self.build(True)
 
-# elements class root
+#\brief the main city elements collection
+#
+# store any element
 class BC_elements(bpy.types.PropertyGroup) :
     name  = bpy.props.StringProperty() # object name
     type  = bpy.props.StringProperty() # outlines / buildings / sidewalks...
     pointer = bpy.props.StringProperty(default='-1') # outlines / buildings / sidewalks...
     
-    # element name to element id lookup
+    ## given the element name, returns its id in its collection
+    #
+    # warning : indexes of the same element in elements, in outlines, or in builders can differs, so be sure of the className() of the element.
     def index(self) :
         return int(self.path_from_id().split('[')[1].split(']')[0])
 
-    def inElements(self) :
+    ## given any kind of element, returns it as member of the main elements collection
+    def asElement(self) :
         return bpy.context.scene.city.elements[self.name]
 
-    def inOutlines(self) :
-        elm = self.inClass()
-        if elm.className() != 'outlines' : return self.peer()
+    ## given any kind of element, returns the outline of it
+    def asOutline(self) :
+        city = bpy.context.scene.city
+        self = self.asElement()
+        if self.type == 'outlines' : elmclass = eval('city.%s'%self.type)
+        else : elmclass = eval('city.builders.%s'%self.type)
+        self = elmclass[self.name]
+        if self.className() != 'outlines' : return self.peer()
         else : return self
 
-    def inClass(self) :
-        if self.className() == 'elements' : 
-            if 'outlines' in self.name : elmclass = eval('bpy.context.scene.city.%s'%self.type)
-            else : elmclass = eval('bpy.context.scene.city.builders.%s'%self.type)
+    ## given any kind of element, returns the element in its builder class
+    def asBuilder(self) :
+        city = bpy.context.scene.city
+        self = self.asElement()
+        if self.type == 'outlines' : elmclass = eval('city.%s'%self.type)
+        else : elmclass = eval('city.builders.%s'%self.type)
+        self = elmclass[self.name]
+        if self.className() == 'outlines' : return self.peer()
+        else : return self
+
+    ## returns the class of the element as string : 'elements', 'outlines', or builder name
+    def className(self) :
+        return self.__class__.__name__[3:]
+
+    ## returns the outline if the element is a builder or an Element, returns the builder if the element is an outline
+    def peer(self) :
+        city = bpy.context.scene.city
+        if self.className() == 'elements' :
+            if self.type == 'outlines' : 
+                return city.outlines[self.name]
+            else :
+                elmclass = eval('city.builders.%s'%self.type)
+                return elmclass[self.name]
+        if self.className() == 'outlines' : 
+            self = city.elements[self.attached]
+            elmclass = eval('city.builders.%s'%self.type)
             return elmclass[self.name]
         else :
-            return self
+            self = city.elements[self.attached]
+            return city.outlines[self.name]
 
-    # blender object <-> elements methods
+    ## from an element, returns and select the object
     def select(self,attached=False) :
         #print('select %s %s %s'%(self.name,self.className(),attached))
         if attached :
@@ -50,6 +91,7 @@ class BC_elements(bpy.types.PropertyGroup) :
             bpy.context.scene.objects.active = ob
         else : return False
 
+    ## from an element, returns the object
     def object(self) :
         elm = bpy.context.scene.city.elements[self.name]
         if elm.pointer == '-1' : return False
@@ -58,11 +100,13 @@ class BC_elements(bpy.types.PropertyGroup) :
                 return ob
         else : return False
 
+    ## from an element, returns the object name
     def objectName(self) :
         ob = self.object()
         if ob : return ob.name
         else : return False
 
+    ## change the object and the mesh names of the element object to its own name (if the object exists)
     def objectNameSet(self) :
         ob = self.object()
         if ob : 
@@ -70,7 +114,7 @@ class BC_elements(bpy.types.PropertyGroup) :
             ob.data.name = self.name
         else : return False
 
-    # name of a NEW element
+    ## name a new element in the element class.
     def nameNew(self,tag,id=0) :
         name = '%s.%1.5d'%(tag,id)
         while name in bpy.context.scene.city.elements :
@@ -78,15 +122,6 @@ class BC_elements(bpy.types.PropertyGroup) :
             name = '%s.%1.5d'%(tag,id)
         self.name = name
         return name
-
-    def className(self) :
-        return self.__class__.__name__[3:]
-
-    def peer(self) :
-        city = bpy.context.scene.city
-        elm = self.inClass()
-        elm = city.elements[elm.attached]
-        return elm.inClass()
 
     def nameMain(self) :
         n = self.name.split('.')
@@ -102,7 +137,7 @@ class BC_elements(bpy.types.PropertyGroup) :
         pass
 
     def selectParent(self,attached=False) :
-        elm = self.inClass()
+        elm = self.asBuilder()
         if elm.className() != 'outlines' :
             elm = elm.peer()
             attached = True
@@ -113,7 +148,7 @@ class BC_elements(bpy.types.PropertyGroup) :
      
     def selectChild(self,attached=False) :
         outlines = bpy.context.scene.city.outlines
-        childs = self.inOutlines().childList()
+        childs = self.asOutline().childList()
         if len(childs) > 0 :
             child = outlines[childs[0]]
             child.select(attached)
@@ -238,7 +273,7 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
         print('>',verts,edges)
         print(len(verts),len(edges))
         ob = createMeshObject(self.name,verts,edges)
-        self.inElements().pointer = str(ob.as_pointer())
+        self.asElement().pointer = str(ob.as_pointer())
 
     def childAdd(self,childname) :
         if self.childs == '' :

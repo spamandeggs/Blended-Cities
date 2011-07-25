@@ -1,1 +1,16 @@
-Blended Cities
+Blended Cities for blender 2.5 series
+continuation of a procedural city project begun with 2.4x :
+http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
+
+2011/07/25
+. internal documentation ( doxygen ) created /documentation/internal/html. begin to document internal code, cleaning, naming convention.
+. debug. renamed some function : inElement -> asElement, inClass -> asBuilder, inOutlines -S asOutline
+( naming convention isLikeThat to recognize BC functions from_the_bpy_ones )
+. added a fake builder class, sidewalk (test purposes)
+. added command examples in /documentation/internal/examples
+. new builders modules moved in the builders should now append automatically at init. their name should appear in the Outlines panel, and their gui should be spawned if needed. building_class.py and its ui are references (I mean will be)
+. parts moved from modules to another, still organizing things.
+. some ui improvements
+
+2011/07/24
+. turned it as a module. first multifile split and organisation.

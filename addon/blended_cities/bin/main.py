@@ -1,18 +1,18 @@
-'''
-city = bpy.context.scene.city
+##\mainpage Blended Cities internal documentation
+# v0.6 for Blender 2.5.8a
+#
+# this is the continuation of a project begun with previous release of blender :
+#
+# http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
+#
+# the version number starts after the last blended cities release for 2.49b but this is tests stage for now (july 2011)
 
- dir(self)
-['__dict__', '__doc__', '__module__', '__weakref__', 'action', 'bl_description', 'bl_idname', 'bl_label', 'bl_options',
-'bl_rna', 'cancel', 'check', 'draw', 'execute', 'has_reports', 'invoke', 'layout', 'modal', 'name', 'order', 'poll', 'pr
-operties', 'report', 'rna_type'] 
+##@file
+# main.py
+# the main city class
+# bpy.context.scene.city
+# the file calls the other modules and holds the main city methods
 
-layers = 20*[False]
-layers[0] = True
-bpy.ops.mesh.primitive_cube_add(view_align=False, enter_editmode=False, location=(-0.364221, 6.65412, 6.06772), rotation=(0, 0, 0), layers=layers )
-bpy.ops.object.modifier_add(type='CAST')
-bpy.ops.object.modifier_apply(apply_as='DATA', modifier='Cast')
-
-'''
 import bpy
 import blf
 import copy
@@ -26,6 +26,7 @@ debug = False
 # in order to give pointers towards builders to the main class
 from blended_cities.bin.ui import *
 from blended_cities.bin.class_import import *
+#from class_import import *
 
 # should be somewhere else
 def dprint(str,level=1) :
@@ -34,21 +35,18 @@ def dprint(str,level=1) :
         print(str)
 
 
-# ######################################
-# MAIN CITY CLASS bpy.context.scene.city
-# ######################################
-
+## bpy.context.scene.city
 class BlendedCities(bpy.types.PropertyGroup) :
     elements = bpy.props.CollectionProperty(type=BC_elements)
     outlines = bpy.props.CollectionProperty(type=BC_outlines)
     builders = bpy.props.PointerProperty(type=BC_builders)
-    tagitems = ( ('buildings','building lot','a building lot'),('child','child','a child element') )
-    tagmenu  = bpy.props.EnumProperty( items = tagitems,  default = 'buildings', name = "Tag",  description = "" )
+    #tagitems = ( ('buildings','building lot','a building lot'),('child','child','a child element') )
+    #tagmenu  = bpy.props.EnumProperty( items = tagitems,  default = 'buildings', name = "Tag",  description = "" )
     debuglevel = bpy.props.IntProperty(default=1)
     builders_info = {} # should be a collection
 
-    go = bpy.props.BoolProperty()
-    go_once = bpy.props.BoolProperty()
+    bc_go = bpy.props.BoolProperty()
+    bc_go_once = bpy.props.BoolProperty()
 
     def elementNew(self,elm, outlineOb=False,outlineName='outlines') :
         # a class name is given :
@@ -183,9 +181,8 @@ class BlendedCities(bpy.types.PropertyGroup) :
         pointer = str(ob.as_pointer())
         for elm in self.elements :
             if elm.pointer == pointer :
-                return elm.inClass()
+                return elm.asBuilder()
         return False
-
 
 
 class OP_BC_buildingParts(bpy.types.Operator) :
@@ -252,10 +249,6 @@ class OP_BC_tag(bpy.types.Operator) :
                 new.select()
 
                 print('attached %s to outline %s (ob current name : %s)'%(new.name,otl.name,new.objectName() ))
-        #else :
-        #    city.building.remove(outlineOb['citytag_id'])
-        #    del outlineOb['citytag']
-        #    del outlineOb['citytag_id']
                         
         return {'FINISHED'}
 

@@ -1,41 +1,33 @@
+##\file
+# a builder user interface file, the one of the buildings class 
+# file naming convention : 
+#
+# xxxxxx_ui.py where xxxxxx is the name of the builder as it appears in the user interface
+#
+# buildings_ui.py should act as a reference for new builders ui. builders ui can use existing methods (operators, buttons, panels..) defined in ui.py 
+
 import bpy
 from blended_cities.bin.ui import *
 
-# a city element panel
+## building builder user interface class
 class BC_buildings_panel(bpy.types.Panel) :
-    bl_label = 'Building ops'
+    bl_label = 'Buildings'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    bl_idname = 'building_ops'
+    bl_idname = 'buildings'
 
 
-    #def draw_header(self, context):
-    #    layout = self.layout
-    #   row = layout.row(align = True)
-    #    row.label(icon = 'SEQ_PREVIEW')
     @classmethod
     def poll(self,context) :
-        city = bpy.context.scene.city
-        if bpy.context.mode == 'OBJECT' and \
-        len(bpy.context.selected_objects) == 1 and \
-        type(bpy.context.active_object.data) == bpy.types.Mesh :
-            elm = city.elementGet(bpy.context.active_object)
-            if elm :
-                #print(elm.className())
-                if ( elm.className() == 'outlines' and city.elements[elm.attached].type == 'buildings') or \
-                elm.className() == 'buildings' :
-                    return True
-                    #tagClass = eval('city.%s'%city.element[ob.name].type)
-                    #print(tagClass[ob.name].outline)
-                    #bpy.ops.object.select_name(name=tagClass[ob.name].outline)
-                #'citytag' in  and bpy.context.active_object['citytag'] == 'building_lot' : 
-                # use poll to create the mesh if does not exists ?
-                #return True
-        
+        return pollBuilders(context,'buildings')
+
+
+    def draw_header(self, context):
+        drawHeader(self,'builders')
+
         
     def draw(self, context):
         city = bpy.context.scene.city
-        modal = bpy.context.window_manager.modal
         scene  = bpy.context.scene
 
         # either the building or its outline is selected : lookup
@@ -49,6 +41,8 @@ class BC_buildings_panel(bpy.types.Panel) :
 
         layout  = self.layout
         layout.alignment  = 'CENTER'
+
+        drawElementSelector(layout,otl)
         
         row = layout.row()
         row.label(text = 'Name : %s / %s'%(building.objectName(),building.name))
@@ -90,20 +84,6 @@ class BC_buildings_panel(bpy.types.Panel) :
 
         row = layout.row()
         row.operator('buildings.part',text='Add a part above this').action='add above'
-
-        drawElementSelector(layout,otl)
-
-        row = layout.row()
-        row.label(text = 'AutoRefresh :')
-        if modal.status :
-            row.operator('wm.modal_stop',text='Stop')
-        else :
-            row.operator('wm.modal_start',text='Start')
-        row.operator('wm.modal',text='test')
-
-        layout.separator()
-
-        drawRemoveTag(layout)
 
 
 def register() :
