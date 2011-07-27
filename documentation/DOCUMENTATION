@@ -20,7 +20,8 @@ VOCABULARY SO FAR
 			city.elementAdd()
 			city.elementRemove()
 			elm.childList()
-		
+			otl.selectParent()
+
 		
 	. classes declarations
 	
