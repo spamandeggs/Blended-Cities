@@ -1,6 +1,6 @@
 bl_info = {
     "name": "Blended Cities",
-    "description": "reads a .pgn chess file and replays the game in the 3D view.",
+    "description": "A city builder",
     "author": "Jerome Mahieux (Littleneo)",
     "version": (0, 1),
     "blender": (2, 5, 8),
@@ -24,9 +24,9 @@ if __name__ != "__main__" :
     if "bpy" in locals():
         print('\nreload modules\n')
         import imp
-        imp.reload(bin.class_main)
-        imp.reload(bin.class_import)
-        imp.reload(bin.main)
+        imp.reload(core.class_main)
+        imp.reload(core.class_import)
+        imp.reload(core.main)
           
     else:
         print('\nload modules\n')
@@ -47,7 +47,7 @@ else :
 
 def register() :
         #operators :
-        bpy.utils.register_class( OP_BC_cityMethods)
+        bpy.utils.register_class(OP_BC_cityMethods)
         bpy.utils.register_class(OP_BC_buildinglist)
         bpy.utils.register_class(OP_BC_buildingBuild)
         bpy.utils.register_class(OP_BC_buildingWipe)
