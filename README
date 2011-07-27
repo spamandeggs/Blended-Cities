@@ -5,8 +5,12 @@ http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introductio
 
 2011/07/27
 . outline and builder are now parented. outline and outline childs too.
-. code cleaning. more documentation
+. code cleaning. code splitting. needs litterature, more documentation
+. improved function documentation.
+. elements own outlines-only methods, this to have a cleaner code , like elm.childAdd() rather than elm.asOutline().childAdd() 
 . appended 'bin' to 'core' mod by ondrej 
+. first remove element feature, to check. cares about parenting in 'real world' too.
+.. lot of stuff, but it's initial/test/concept time, still going with my machete in the jungle.
 
 2011/07/26
 . can be enabled by default. can be disabled without complaining. can reload the builders classes and submodules without restarting blender, if addons dependencies v0.3 is installed http://jerome.le.chat.free.fr/index.php/en/download/blender/addon-dependencies-download.html
