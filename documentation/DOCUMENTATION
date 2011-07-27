@@ -1,0 +1,177 @@
+IMPORTANT INFOS ABOUT INTERNAL
+ALL OF THIS IS WIP AND OPEN TO DISCUSSION / COMMIT
+
+VOCABULARY SO FAR
+-----------------
+
+	. collections :
+		
+		first letter is upper-case, always plural : we talk about collections of elements like the Elements collection
+			Elements
+			Outlines
+			Builders.Buildings
+			..
+
+		
+	. city methods and functions :
+	
+		are namedLikeThis(), whereas blender functions are named_like_this().
+		function prefix is the python object related to it, function suffix is the action. like :
+			city.elementAdd()
+			city.elementRemove()
+			elm.childList()
+		
+		
+	. classes declarations
+	
+		should begin with BC_
+		operators with BC_OP (need to be modified since for now its OP_BC_)
+		panels with BC_PN
+
+		NOTES : to discuss : there's some normalisation to apply when registering class into bpy. but I don't know it quiet well
+
+		
+	. 3D objects
+	
+		**object**	means a 3d object. (object real names are free.)
+	
+	
+	. elements in city classes
+	
+		an **element** is a row defining an element of the city in one of the collections. this could be a 
+		Builders.Buildings element, or a Outlines element, an Elements element.. often (should be always) 
+		designated by **elm** in the code.
+
+		an **outline** is an element from the Outlines collection. designated by **otl** in the code.
+
+		a **builder** is an element from one of the Builders sub-collections.  designated by **bld** in the code.
+		one can found blg too since buildings were the first builder to show up but should be edited.
+
+		other will be found in code for well known builders class, like blg or sdw
+
+		**bld_xxx**	smtg related to a builder like : 
+
+			bld_parent	the parent element part
+			bld_child	a child element part
+			blg_main	the root element
+			blg_otl		the outline attached to a building
+
+		element names for now are like :
+			<elementcollectionnameclass>.01207
+			outlines.00000
+			buildings.00000 (we know it's the Builders.Buildings element from the name)
+
+		childs elements of an element like building.00024 are named :
+			building.00024.00010
+	
+			there's only one level in the name. it does not reflect the hierarchy
+			
+			building.00024---o---building.00024.00000   o---building.00024.00002
+			                 |                          |
+							 o---building.00024.00001---o---building.00024.00003---building.00024.00004
+			
+		** the name must not be changed ** (unless you use a city.method for a special thing to do)
+			
+			. it's used for internal lookup
+			. it acts as a database key for collection relation ship, element parenting
+			
+		NOTES :
+			. I'm not sure it's really helpful to add a suffix for childs elements building.00024.00000. all
+			the parenting informations can be retrieved from Outlines
+			. the type field becomes useless now in the Elements class. and I don't like the name too
+
+			
+ELEMENTS ORGANISATION
+---------------------
+
+	an object is partly defined by its attached outline object. for each object there's an outline object.
+	they corresponds to one outline element and one builder element.
+	
+	each element name must always be in two collections :
+		. either in the Outlines collection or one of the Builders sub-collection (Buildings etc)
+		. and the Elements collection, whatever it's an outline or a builder
+
+	so for one city mesh object like a building part, there's :
+		. blg.name in the Elements collection,
+		. blg.name in the Builders.Buildings collection,
+		. the attached outline as a 3d object,
+		. otl.name in the Elements collection,
+		. otl.name in the Outlines collection
+
+	** city.elementAdd() cares about all of this. you must not add a member directly in one of the collection
+	since they need to stay in sync !
+	
+	elements main operation like add, remove etc.. must be done from/should resides among the city methods.
+	
+	
+ELEMENT CLASSES INHERITANCE
+---------------------------
+	Elements
+		Outlines
+		Builders
+			Buildings
+				Residentials (would be a subclass of Buildings that define more properties for Buildings, or mod existing as you said)
+				Roofs
+				Skycrapers
+				...
+			Roads
+			Sidewalks.
+
+
+BPY ACCESS AND METHODS
+----------------------
+
+	the last info about internal are documented here :
+		read only	http://jerome.le.chat.free.fr/projets/blendedCities25/documentation/internal/html/index.html
+		git			https://github.com/littleneo/Blended-Cities/tree/master/documentation/internal
+		
+	example of commands will be in the example folder :
+		read only	http://jerome.le.chat.free.fr/projets/blendedCities25/documentation/internal/examples/
+		git			https://github.com/littleneo/Blended-Cities/tree/master/documentation/internal/examples
+
+
+		
+	city = bpy.context.scene.city
+	cityops = bpy.ops.......
+
+	name						description
+
+	city 						main city.methods() main variables
+	city.elements				collection and elm.methods()
+		name					
+		pointer						the memory pointer to the object
+		
+	city.outlines				collections and otl.methods()
+		name
+		attached					the name of the attached builder
+		data
+		parent						the parent outline
+		childs						the childs
+		
+	city.builders				bld.methods() none yet
+		name
+		attached					the name of the attached peer
+		build properties
+		
+	city.builders.buildings		a collection and blg.methods()
+	city.builders.sidewalks		another coeection with its own methods related to each of its member in the collection
+
+	** some of the methods related to Outlines methods are declared in Elements, like relationship or select :
+		so one can write, from any kind of element :	elm.childList()
+		rather than :									elm.asOutline().childList()
+
+	there's not a unique collection for elements since the builders will have different properties, and a different number of it.
+	outline and builders are apart since an outline builds nothing by itself, and that the builder should'nt have to care about 
+	relative selection stuff (select parent, child, sibling..). also : the outline is in some case defined by the object,
+	whereas the builder element is never defined by its object.
+	
+	Elements is used for lookup things ( index() object()..) thanks to its pointer field.
+	
+	
+MODULES, NAMESPACES, AND FILES
+------------------------------
+
+	the builders class reside in /builders
+	builders collection and panel classes have been splitted into two parts :
+		idea was to use the 
+	TBD
