@@ -25,7 +25,7 @@ def updateBuild(self,context='') :
 # @param name used internally as key for parenting and element lookup ! shouldn't be modified !
 # @param type used for lookup between the element as element and the same element as builder or outline. I don't think it's useful anymore, since the name gives the info about the class of the element.
 # @param pointer is the pointer to the real object. set to -1 if the object is missing. i fact it correspond to the obj.as_pointer() function. it allows to change the name of the real object without breaking the relation-ship between the element and the object.
-class BC_elements(bpy.types.PropertyGroup) :
+class BC_elements(bpy.types.PropertyGroup):
     name  = bpy.props.StringProperty()
     type  = bpy.props.StringProperty()
     pointer = bpy.props.StringProperty(default='-1')
@@ -232,7 +232,7 @@ class BC_elements(bpy.types.PropertyGroup) :
 # @param childs (list as string) store outlines parented to the outline element "child1,child2,.."
 # @param parent  the parent outline name if any (else '')
 
-class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
+class BC_outlines(BC_elements,bpy.types.PropertyGroup):
     type   = bpy.props.StringProperty() # its tag
     attached = bpy.props.StringProperty() # its attached object name (the real mesh)
     data = bpy.props.StringProperty(default="{'perimeters':[], 'lines':[], 'dots':[], 'matrix':Matrix() }") # global. if the outline object is missing, create from this
@@ -366,3 +366,11 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
         for child in self.childslist() :
             city.outlines[child].parent = name
         self.asElement().name = name
+
+
+##\brief the builders registered
+#
+# By default this is empty and will be populated with builder collections
+
+class BC_builders(bpy.types.PropertyGroup):
+	builders_list = bpy.props.StringProperty()

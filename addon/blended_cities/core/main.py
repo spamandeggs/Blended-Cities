@@ -20,9 +20,7 @@ print('main.py')
 #from blended_cities.core.ui import *
 #from blended_cities.core.class_import import *
 from blended_cities.core.class_main import *
-from blended_cities import BC_builders
 from blended_cities.utils.meshes_io import *
-#buildersRegister()
 
 import bpy
 import blf
@@ -41,13 +39,12 @@ def dprint(str,level=1) :
     if level <= city.debuglevel :
         print(str)
 
-
 ## bpy.context.scene.city
 # main class, main methods. holds all the pointers to element collections
 class BlendedCities(bpy.types.PropertyGroup) :
     elements = bpy.props.CollectionProperty(type=BC_elements)
     outlines = bpy.props.CollectionProperty(type=BC_outlines)
-    builders = bpy.props.PointerProperty(type=BC_builders)
+    builders = BC_builders
     #tagitems = ( ('buildings','building lot','a building lot'),('child','child','a child element') )
     #tagmenu  = bpy.props.EnumProperty( items = tagitems,  default = 'buildings', name = "Tag",  description = "" )
     debuglevel = bpy.props.IntProperty(default=1)
@@ -81,17 +78,16 @@ class BlendedCities(bpy.types.PropertyGroup) :
             print('class %s not found.'%elementClassName)
             return False, False
 
-        city = bpy.context.scene.city
-
         # create a new outline as element 
-        otl_elm = city.elements.add()
+        otl_elm = self.elements.add()
+        otl_elm = self.elements[-1]
         otl_elm.nameNew(outlineName)
         otl_elm.type = 'outlines'
         if outlineOb : otl_elm.pointer = str(outlineOb.as_pointer())
         else : otl_elm.pointer = '-1'  # todo : spawn a primitive of the elm class
 
         # a new outline in its class
-        otl = city.outlines.add()
+        otl = self.outlines.add()
         otl.name = otl_elm.name
         otl.type = elementClassName
         if otl_elm.pointer != '-1' :
@@ -100,7 +96,7 @@ class BlendedCities(bpy.types.PropertyGroup) :
             otl.data = otl_dad.data
 
         # the new object as element
-        new_elm = city.elements.add()
+        new_elm = self.elements.add()
         new_elm.nameNew(elementName)
         new_elm.type = elementClassName
 
@@ -183,11 +179,10 @@ class BlendedCities(bpy.types.PropertyGroup) :
     # modal. called from watchdog addon
     def modalBuilder(self,self_mdl,context,event) :
             print('modal')
-            city = bpy.context.scene.city
             if bpy.context.mode == 'OBJECT' and \
             len(bpy.context.selected_objects) == 1 and \
             type(bpy.context.active_object.data) == bpy.types.Mesh :
-                elm,otl = city.elementGet(bpy.context.active_object)
+                elm,otl = self.elementGet(bpy.context.active_object)
                 elm.build(True)
             '''
                 if elm.className() == 'buildings' or elm.peer().className() == 'buildings' :
@@ -240,15 +235,58 @@ class BlendedCities(bpy.types.PropertyGroup) :
     ## clean everything, restore the defaults
     # configure also the modal (it won't if BC is enabled by default, for now must be started by hand with city.modalConfig() )
     def init(self) :
-        scene = bpy.data.scenes[0]
-        city = scene.city
-        while len(city.elements) > 0 :
-            city.elements.remove(0)
-        while len(city.builders.buildings) > 0 :
-            city.builders.buildings.remove(0)
-        while len(city.outlines) > 0 :
-            city.outlines.remove(0)
-        bpy.context.scene.city.modalConfig()
+        while len(self.elements) > 0 :
+            self.elements.remove(0)
+        while len(self.builders.buildings) > 0 :
+            self.builders.buildings.remove(0)
+        while len(self.outlines) > 0 :
+            self.outlines.remove(0)
+        self.modalConfig()
+
+builders_list  = []
+
+# registers a new builder class
+def register_builder(builderClass,uiClass):
+    global builders_list
+    bpy.utils.register_class(builderClass)
+    bpy.utils.register_class(uiClass)
+    builders_list.append(builderClass)
+    prop = bpy.props.PointerProperty(type=builderClass)
+    exec('BlendedCities.builders.%s = prop'%builderClass.bl_idname)
+    update_builders_dropdown()
+
+# unregisters a new builder class
+def unregister_builder(builderClass,uiClass):
+    global builders_list
+    exec('del BlendedCities.builders.%s'%builderClass.bl_idname)
+    bpy.utils.unregister_class(builderClass)
+    bpy.utils.unregister_class(uiClass)
+    builders_list.remove(builderClass)
+
+    update_builders_dropdown()
+
+# updates dropdown in the main tagging ui
+def update_builders_dropdown():
+    global builders_list
+    class_selector = []
+    #class_default  = 'buildings'
+    for cl in builders_list :
+        class_selector.append( (cl.bl_idname,cl.bl_label,cl.bl_description) )
+    bpy.types.WindowManager.city_builders_dropdown  = bpy.props.EnumProperty( items = class_selector, name = "Builders",  description = "" )
+
+def register_default_builders():
+    from blended_cities.builders.buildings import BC_buildings,BC_buildings_panel
+    from blended_cities.builders.sidewalks import BC_sidewalks,BC_sidewalks_panel
+
+    register_builder(BC_buildings,BC_buildings_panel)
+    register_builder(BC_sidewalks,BC_sidewalks_panel)
+
+def unregister_default_builders():
+    from blended_cities.builders.buildings import BC_buildings,BC_buildings_panel
+    from blended_cities.builders.sidewalks import BC_sidewalks,BC_sidewalks_panel
+
+    unregister_builder(BC_buildings,BC_buildings_panel)
+    unregister_builder(BC_sidewalks,BC_sidewalks_panel)
 
 # register_class() for BC_builders and builders classes are made before
 # the BlendedCities definition class_import

@@ -25,14 +25,14 @@ if __name__ != "__main__" :
         print('\nreload modules\n')
         import imp
         imp.reload(core.class_main)
-        imp.reload(core.class_import)
+        #imp.reload(core.class_import)
         imp.reload(core.main)
           
     else:
         print('\nload modules\n')
         import bpy
         from blended_cities.core.class_main import *
-        from blended_cities.core.class_import import *
+        #from blended_cities.core.class_import import *
         from blended_cities.utils.meshes_io import *
         from blended_cities.core.ui import *
         from blended_cities.core.main import *
@@ -62,19 +62,21 @@ def register() :
         bpy.utils.register_class(BC_elements)
         bpy.utils.register_class(BlendedCities)
         #bpy.utils.register_module(__name__,True)
+        
         bpy.types.Scene.city = bpy.props.PointerProperty(type=BlendedCities)
+        register_default_builders()
 
 
 def unregister() :
     print('\n%s init unregister\n'% __name__)
     scene = bpy.data.scenes[0]
-    module_name = 'blended_cities.builders'
-    for m in dict(sys.modules) :
-        if module_name + '.' == m[0:len(module_name) +1 ] and '_class' in m :
-            builder = 'BC_'+m[len(module_name) +1:].split('_')[0] #
-            exec('bpy.utils.unregister_class(%s)'%builder)
-            exec('bpy.utils.unregister_class(%s_panel)'%builder)
-            print('  %s unregistered'%builder)
+#    module_name = 'blended_cities.builders'
+#    for m in dict(sys.modules) :
+#        if module_name + '.' == m[0:len(module_name) +1 ] and '_class' in m :
+#            builder = 'BC_'+m[len(module_name) +1:].split('_')[0] #
+#            exec('bpy.utils.unregister_class(%s)'%builder)
+#            exec('bpy.utils.unregister_class(%s_panel)'%builder)
+#            print('  %s unregistered'%builder)
     del bpy.types.Scene.city
     bpy.utils.unregister_class(BlendedCities)
     bpy.utils.unregister_class(BC_elements)
