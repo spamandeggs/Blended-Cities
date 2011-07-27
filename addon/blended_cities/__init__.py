@@ -47,6 +47,7 @@ else :
 
 def register() :
         #operators :
+        register_default_builders()
         bpy.utils.register_class(OP_BC_cityMethods)
         bpy.utils.register_class(OP_BC_buildinglist)
         bpy.utils.register_class(OP_BC_buildingBuild)
@@ -64,7 +65,7 @@ def register() :
         #bpy.utils.register_module(__name__,True)
         
         bpy.types.Scene.city = bpy.props.PointerProperty(type=BlendedCities)
-        register_default_builders()
+
 
 
 def unregister() :
