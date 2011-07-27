@@ -1,5 +1,5 @@
 import bpy
-from blended_cities.bin.ui import *
+from blended_cities.core.ui import *
 
 # a city element panel
 class BC_sidewalks_panel(bpy.types.Panel) :
@@ -23,13 +23,7 @@ class BC_sidewalks_panel(bpy.types.Panel) :
         scene  = bpy.context.scene
         ob = bpy.context.active_object
         # either the building or its outline is selected : lookup
-        elm = city.elementGet(ob)
-        if elm.className() == 'outlines' : 
-            sdw = elm.peer()
-            otl  = elm
-        else :
-            sdw = elm
-            otl = elm.peer()
+        sdw, otl = city.elementGet(ob)
 
         layout  = self.layout
         layout.alignment  = 'CENTER'
@@ -43,6 +37,4 @@ class BC_sidewalks_panel(bpy.types.Panel) :
 
 
         layout.separator()
-
-        drawRemoveTag(layout)
 

@@ -7,7 +7,7 @@
 # buildings_ui.py should act as a reference for new builders ui. builders ui can use existing methods (operators, buttons, panels..) defined in ui.py 
 
 import bpy
-from blended_cities.bin.ui import *
+from blended_cities.core.ui import *
 
 ## building builder user interface class
 class BC_buildings_panel(bpy.types.Panel) :
@@ -31,13 +31,7 @@ class BC_buildings_panel(bpy.types.Panel) :
         scene  = bpy.context.scene
 
         # either the building or its outline is selected : lookup
-        elm = city.elementGet(bpy.context.active_object)
-        if elm.className() == 'outlines' : 
-            building = elm.peer()
-            otl  = elm
-        else :
-            building = elm
-            otl = elm.peer()
+        building, otl = city.elementGet(bpy.context.active_object)
 
         layout  = self.layout
         layout.alignment  = 'CENTER'
@@ -83,7 +77,7 @@ class BC_buildings_panel(bpy.types.Panel) :
         row.prop(building,'roofHeight')
 
         row = layout.row()
-        row.operator('buildings.part',text='Add a part above this').action='add above'
+        row.operator('city_builders.method',text='Add a part above this').action='add above'
 
 
 def register() :

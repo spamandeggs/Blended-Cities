@@ -5,52 +5,52 @@ var NAVTREE =
     [ "Class List", "annotated.html", [
       [ "BC_buildings", "d7/d9d/classblended__cities_1_1builders_1_1buildings__class_1_1_b_c__buildings.html", null ],
       [ "BC_buildings_panel", "d9/d76/classblended__cities_1_1builders_1_1buildings__ui_1_1_b_c__buildings__panel.html", null ],
-      [ "BC_elements", "d2/d6e/classblended__cities_1_1bin_1_1class__main_1_1_b_c__elements.html", null ],
-      [ "BC_main_panel", "d7/df4/classblended__cities_1_1bin_1_1ui_1_1_b_c__main__panel.html", null ],
-      [ "BC_outlines", "d8/d1c/classblended__cities_1_1bin_1_1class__main_1_1_b_c__outlines.html", null ],
-      [ "BC_outlines_panel", "d5/d36/classblended__cities_1_1bin_1_1ui_1_1_b_c__outlines__panel.html", null ],
+      [ "BC_elements", "d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html", null ],
+      [ "BC_main_panel", "d9/ddb/classblended__cities_1_1core_1_1ui_1_1_b_c__main__panel.html", null ],
+      [ "BC_outlines", "de/d90/classblended__cities_1_1core_1_1class__main_1_1_b_c__outlines.html", null ],
+      [ "BC_outlines_panel", "dd/d7b/classblended__cities_1_1core_1_1ui_1_1_b_c__outlines__panel.html", null ],
       [ "BC_sidewalks", "d1/dbe/classblended__cities_1_1builders_1_1sidewalks__class_1_1_b_c__sidewalks.html", null ],
       [ "BC_sidewalks_panel", "d1/d86/classblended__cities_1_1builders_1_1sidewalks__ui_1_1_b_c__sidewalks__panel.html", null ],
-      [ "BlendedCities", "da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html", null ],
-      [ "OP_BC_buildingBuild", "de/d03/classblended__cities_1_1bin_1_1main_1_1_o_p___b_c__building_build.html", null ],
-      [ "OP_BC_buildinglist", "d8/d02/classblended__cities_1_1bin_1_1main_1_1_o_p___b_c__buildinglist.html", null ],
-      [ "OP_BC_buildingParts", "d5/d02/classblended__cities_1_1bin_1_1main_1_1_o_p___b_c__building_parts.html", null ],
-      [ "OP_BC_buildingWipe", "d9/dd2/classblended__cities_1_1bin_1_1main_1_1_o_p___b_c__building_wipe.html", null ],
-      [ "OP_BC_Selector", "df/d4a/classblended__cities_1_1bin_1_1ui_1_1_o_p___b_c___selector.html", null ],
-      [ "OP_BC_tag", "d9/d34/classblended__cities_1_1bin_1_1main_1_1_o_p___b_c__tag.html", null ]
+      [ "BlendedCities", "d1/d39/classblended__cities_1_1core_1_1main_1_1_blended_cities.html", null ],
+      [ "OP_BC_buildersMethods", "d8/d99/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c__builders_methods.html", null ],
+      [ "OP_BC_buildingBuild", "d2/d64/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c__building_build.html", null ],
+      [ "OP_BC_buildinglist", "d4/dc1/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c__buildinglist.html", null ],
+      [ "OP_BC_buildingWipe", "d9/df8/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c__building_wipe.html", null ],
+      [ "OP_BC_cityMethods", "d3/daa/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c__city_methods.html", null ],
+      [ "OP_BC_Selector", "da/dd9/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c___selector.html", null ]
     ] ],
     [ "Class Index", "classes.html", null ],
     [ "Class Hierarchy", "hierarchy.html", [
       [ "BC_buildings_panel", "d9/d76/classblended__cities_1_1builders_1_1buildings__ui_1_1_b_c__buildings__panel.html", null ],
-      [ "BC_elements", "d2/d6e/classblended__cities_1_1bin_1_1class__main_1_1_b_c__elements.html", [
-        [ "BC_outlines", "d8/d1c/classblended__cities_1_1bin_1_1class__main_1_1_b_c__outlines.html", null ],
+      [ "BC_elements", "d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html", [
         [ "BC_buildings", "d7/d9d/classblended__cities_1_1builders_1_1buildings__class_1_1_b_c__buildings.html", null ],
-        [ "BC_sidewalks", "d1/dbe/classblended__cities_1_1builders_1_1sidewalks__class_1_1_b_c__sidewalks.html", null ]
+        [ "BC_sidewalks", "d1/dbe/classblended__cities_1_1builders_1_1sidewalks__class_1_1_b_c__sidewalks.html", null ],
+        [ "BC_outlines", "de/d90/classblended__cities_1_1core_1_1class__main_1_1_b_c__outlines.html", null ]
       ] ],
-      [ "BC_main_panel", "d7/df4/classblended__cities_1_1bin_1_1ui_1_1_b_c__main__panel.html", null ],
-      [ "BC_outlines_panel", "d5/d36/classblended__cities_1_1bin_1_1ui_1_1_b_c__outlines__panel.html", null ],
+      [ "BC_main_panel", "d9/ddb/classblended__cities_1_1core_1_1ui_1_1_b_c__main__panel.html", null ],
+      [ "BC_outlines_panel", "dd/d7b/classblended__cities_1_1core_1_1ui_1_1_b_c__outlines__panel.html", null ],
       [ "BC_sidewalks_panel", "d1/d86/classblended__cities_1_1builders_1_1sidewalks__ui_1_1_b_c__sidewalks__panel.html", null ],
-      [ "BlendedCities", "da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html", null ],
-      [ "OP_BC_buildingBuild", "de/d03/classblended__cities_1_1bin_1_1main_1_1_o_p___b_c__building_build.html", null ],
-      [ "OP_BC_buildinglist", "d8/d02/classblended__cities_1_1bin_1_1main_1_1_o_p___b_c__buildinglist.html", null ],
-      [ "OP_BC_buildingParts", "d5/d02/classblended__cities_1_1bin_1_1main_1_1_o_p___b_c__building_parts.html", null ],
-      [ "OP_BC_buildingWipe", "d9/dd2/classblended__cities_1_1bin_1_1main_1_1_o_p___b_c__building_wipe.html", null ],
-      [ "OP_BC_Selector", "df/d4a/classblended__cities_1_1bin_1_1ui_1_1_o_p___b_c___selector.html", null ],
-      [ "OP_BC_tag", "d9/d34/classblended__cities_1_1bin_1_1main_1_1_o_p___b_c__tag.html", null ]
+      [ "BlendedCities", "d1/d39/classblended__cities_1_1core_1_1main_1_1_blended_cities.html", null ],
+      [ "OP_BC_buildersMethods", "d8/d99/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c__builders_methods.html", null ],
+      [ "OP_BC_buildingBuild", "d2/d64/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c__building_build.html", null ],
+      [ "OP_BC_buildinglist", "d4/dc1/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c__buildinglist.html", null ],
+      [ "OP_BC_buildingWipe", "d9/df8/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c__building_wipe.html", null ],
+      [ "OP_BC_cityMethods", "d3/daa/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c__city_methods.html", null ],
+      [ "OP_BC_Selector", "da/dd9/classblended__cities_1_1core_1_1ui_1_1_o_p___b_c___selector.html", null ]
     ] ],
     [ "Class Members", "functions.html", null ],
     [ "Namespace List", "namespaces.html", [
       [ "blended_cities", "d4/d86/namespaceblended__cities.html", null ],
-      [ "blended_cities::bin", "db/d0d/namespaceblended__cities_1_1bin.html", null ],
-      [ "blended_cities::bin::class_import", "d5/d4f/namespaceblended__cities_1_1bin_1_1class__import.html", null ],
-      [ "blended_cities::bin::class_main", "dd/d1d/namespaceblended__cities_1_1bin_1_1class__main.html", null ],
-      [ "blended_cities::bin::main", "d4/d4e/namespaceblended__cities_1_1bin_1_1main.html", null ],
-      [ "blended_cities::bin::ui", "d2/da3/namespaceblended__cities_1_1bin_1_1ui.html", null ],
       [ "blended_cities::builders", "dc/dde/namespaceblended__cities_1_1builders.html", null ],
       [ "blended_cities::builders::buildings_class", "d0/db6/namespaceblended__cities_1_1builders_1_1buildings__class.html", null ],
       [ "blended_cities::builders::buildings_ui", "d1/df5/namespaceblended__cities_1_1builders_1_1buildings__ui.html", null ],
       [ "blended_cities::builders::sidewalks_class", "d4/d7d/namespaceblended__cities_1_1builders_1_1sidewalks__class.html", null ],
       [ "blended_cities::builders::sidewalks_ui", "d8/d6a/namespaceblended__cities_1_1builders_1_1sidewalks__ui.html", null ],
+      [ "blended_cities::core", "db/da0/namespaceblended__cities_1_1core.html", null ],
+      [ "blended_cities::core::class_import", "d4/d49/namespaceblended__cities_1_1core_1_1class__import.html", null ],
+      [ "blended_cities::core::class_main", "dc/d05/namespaceblended__cities_1_1core_1_1class__main.html", null ],
+      [ "blended_cities::core::main", "dc/d72/namespaceblended__cities_1_1core_1_1main.html", null ],
+      [ "blended_cities::core::ui", "d0/ddf/namespaceblended__cities_1_1core_1_1ui.html", null ],
       [ "blended_cities::utils", "d3/d0c/namespaceblended__cities_1_1utils.html", null ],
       [ "blended_cities::utils::meshes_io", "dd/dd5/namespaceblended__cities_1_1utils_1_1meshes__io.html", null ]
     ] ],
@@ -74,8 +74,8 @@ var NAVTREE =
               [ "scripts", "dir_1c75d16383b6f3c1a83d7a34ba942556.html", [
                 [ "addons", "dir_b6a835ddd1c45aa20a8ab20df794eabe.html", [
                   [ "blended_cities", "dir_e5508e64194a21dc3ab5d099cac3748d.html", [
-                    [ "bin", "dir_ebe1b5ef5843870f5fc8a552a0dde606.html", null ],
                     [ "builders", "dir_eb9bdd8ff7be5c9d8c6c898bf5f8ce30.html", null ],
+                    [ "core", "dir_637b323d1d7f9288d794938a048062aa.html", null ],
                     [ "utils", "dir_32ccc0da58ebd7d72ba9d0005196cedc.html", null ]
                   ] ]
                 ] ]

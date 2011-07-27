@@ -40,6 +40,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
       <li class="current"><a href="../../annotated.html"><span>Classes</span></a></li>
       <li><a href="../../files.html"><span>Files</span></a></li>
       <li><a href="../../dirs.html"><span>Directories</span></a></li>
+      <li><a href="../../examples.html"><span>Examples</span></a></li>
       <li id="searchli">
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -89,7 +90,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 </div>
 <div class="contents">
 <!-- doxytag: class="blended_cities::bin::main::BlendedCities" -->
-<p>bpy.context.scene.city  
+<p>bpy.context.scene.city main class, main methods.  
  <a href="../../da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html#details">More...</a></p>
 
 <p><a href="../../d1/dd8/classblended__cities_1_1bin_1_1main_1_1_blended_cities-members.html">List of all members.</a></p>
@@ -97,8 +98,13 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html#a30ffe2935c20d346e6dd745454c36b7f">elementNew</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">create a new element  <a href="#a30ffe2935c20d346e6dd745454c36b7f"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html#ad7b6bacfe0438504488b48b8bfce0d78">modalConfig</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html#aa113c15c586131e928402513d6a96eee">modalBuilder</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html#a7132cb9de969654f1a0e702ae12c4c59">elementGet</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">given an object or its name, returns a city element (in its class)  <a href="#a7132cb9de969654f1a0e702ae12c4c59"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html#ac95cf511c1f2ff09ca47fe587657c2b4">init</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">clean everything, restore the defaults configure also the modal (it won't if BC is enabled by default, for now must be started by hand with city.modalConfig() )  <a href="#ac95cf511c1f2ff09ca47fe587657c2b4"></a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">tuple&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html#a096a4bb8914390b63ad2e40c7564ff00">elements</a> = bpy.props.CollectionProperty(type=<a class="el" href="../../d2/d6e/classblended__cities_1_1bin_1_1class__main_1_1_b_c__elements.html">BC_elements</a>)</td></tr>
@@ -110,7 +116,8 @@ Static Public Attributes</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">tuple&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html#a20db27c7ddb7f08b40f8531a20fcafff">bc_go_once</a> = bpy.props.BoolProperty()</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock"><p>bpy.context.scene.city </p>
+<div class="textblock"><p>bpy.context.scene.city main class, main methods. </p>
+<p>holds all the pointers to element collections </p>
 </div><hr/><h2>Member Function Documentation</h2>
 <a class="anchor" id="a7132cb9de969654f1a0e702ae12c4c59"></a><!-- doxytag: member="blended_cities::bin::main::BlendedCities::elementGet" ref="a7132cb9de969654f1a0e702ae12c4c59" args="" -->
 <div class="memitem">
@@ -136,6 +143,9 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
+<p>given an object or its name, returns a city element (in its class) </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the element or false if does not exists </dd></dl>
 
 </div>
 </div>
@@ -176,6 +186,28 @@ Static Public Attributes</h2></td></tr>
 </div>
 <div class="memdoc">
 
+<p>create a new element </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>elm, otl (the new element in its class, and its outline) </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ac95cf511c1f2ff09ca47fe587657c2b4"></a><!-- doxytag: member="blended_cities::bin::main::BlendedCities::init" ref="ac95cf511c1f2ff09ca47fe587657c2b4" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def init </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>clean everything, restore the defaults configure also the modal (it won't if BC is enabled by default, for now must be started by hand with city.modalConfig() ) </p>
+
 </div>
 </div>
 <a class="anchor" id="aa113c15c586131e928402513d6a96eee"></a><!-- doxytag: member="blended_cities::bin::main::BlendedCities::modalBuilder" ref="aa113c15c586131e928402513d6a96eee" args="" -->
@@ -210,6 +242,23 @@ Static Public Attributes</h2></td></tr>
           <td></td>
           <td>)</td>
           <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ad7b6bacfe0438504488b48b8bfce0d78"></a><!-- doxytag: member="blended_cities::bin::main::BlendedCities::modalConfig" ref="ad7b6bacfe0438504488b48b8bfce0d78" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def modalConfig </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
 </div>
@@ -320,7 +369,7 @@ Static Public Attributes</h2></td></tr>
       <li class="navelem"><a class="el" href="../../db/d0d/namespaceblended__cities_1_1bin.html">bin</a>      </li>
       <li class="navelem"><a class="el" href="../../d4/d4e/namespaceblended__cities_1_1bin_1_1main.html">main</a>      </li>
       <li class="navelem"><a class="el" href="../../da/d1e/classblended__cities_1_1bin_1_1main_1_1_blended_cities.html">BlendedCities</a>      </li>
-      <li class="footer">Generated on Mon Jul 25 2011 08:35:43 for Blended Cities by&#160;
+      <li class="footer">Generated on Tue Jul 26 2011 23:40:02 for Blended Cities by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.7.4 </li>
     </ul>

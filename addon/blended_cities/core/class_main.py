@@ -4,7 +4,7 @@
 # the elements class that stores every city element
 # the outlines class that store each outline element
 # methods used by builders classes are also inherited from here
-
+print('class_main.py')
 import bpy
 import mathutils
 from mathutils import *
@@ -19,13 +19,16 @@ from blended_cities.utils.meshes_io import *
 def updateBuild(self,context='') :
     self.build(True)
 
-#\brief the main city elements collection
+##\brief the main city elements collection
 #
-# store any element
+# store any element of the city, including outlines. allows 'real' object / element lookups
+# @param name used internally as key for parenting and element lookup ! shouldn't be modified !
+# @param type used for lookup between the element as element and the same element as builder or outline. I don't think it's useful anymore, since the name gives the info about the class of the element.
+# @param pointer is the pointer to the real object. set to -1 if the object is missing. i fact it correspond to the obj.as_pointer() function. it allows to change the name of the real object without breaking the relation-ship between the element and the object.
 class BC_elements(bpy.types.PropertyGroup) :
-    name  = bpy.props.StringProperty() # object name
-    type  = bpy.props.StringProperty() # outlines / buildings / sidewalks...
-    pointer = bpy.props.StringProperty(default='-1') # outlines / buildings / sidewalks...
+    name  = bpy.props.StringProperty()
+    type  = bpy.props.StringProperty()
+    pointer = bpy.props.StringProperty(default='-1')
     
     ## given the element name, returns its id in its collection
     #
@@ -41,8 +44,7 @@ class BC_elements(bpy.types.PropertyGroup) :
     def asOutline(self) :
         city = bpy.context.scene.city
         self = self.asElement()
-        if self.type == 'outlines' : elmclass = eval('city.%s'%self.type)
-        else : elmclass = eval('city.builders.%s'%self.type)
+        elmclass = self.elementClass()
         self = elmclass[self.name]
         if self.className() != 'outlines' : return self.peer()
         else : return self
@@ -50,9 +52,7 @@ class BC_elements(bpy.types.PropertyGroup) :
     ## given any kind of element, returns the element in its builder class
     def asBuilder(self) :
         city = bpy.context.scene.city
-        self = self.asElement()
-        if self.type == 'outlines' : elmclass = eval('city.%s'%self.type)
-        else : elmclass = eval('city.builders.%s'%self.type)
+        elmclass = self.elementClass()
         self = elmclass[self.name]
         if self.className() == 'outlines' : return self.peer()
         else : return self
@@ -61,18 +61,24 @@ class BC_elements(bpy.types.PropertyGroup) :
     def className(self) :
         return self.__class__.__name__[3:]
 
+    ## returns the class of the element itself. 
+    # ! resolved by its name, get rid of type
+    def elementClass(self) :
+        city = bpy.context.scene.city
+        if 'outlines' in self.name  : return eval('city.outlines')
+        else :
+            builder = self.name.split('.')[0]
+            return eval('city.builders.%s'%builder)
+
     ## returns the outline if the element is a builder or an Element, returns the builder if the element is an outline
     def peer(self) :
         city = bpy.context.scene.city
         if self.className() == 'elements' :
-            if self.type == 'outlines' : 
-                return city.outlines[self.name]
-            else :
-                elmclass = eval('city.builders.%s'%self.type)
-                return elmclass[self.name]
+            elmclass = self.elementClass()
+            self = elmclass[self.name]
         if self.className() == 'outlines' : 
             self = city.elements[self.attached]
-            elmclass = eval('city.builders.%s'%self.type)
+            elmclass = self.elementClass()
             return elmclass[self.name]
         else :
             self = city.elements[self.attached]
@@ -123,6 +129,9 @@ class BC_elements(bpy.types.PropertyGroup) :
         self.name = name
         return name
 
+    ## returns the name of the root element in a family of element
+    # not sure about this one : should really the name of child elements have two numeric fields ?
+    # internally almost useless.
     def nameMain(self) :
         n = self.name.split('.')
         if len(n) > 2 : 
@@ -136,61 +145,127 @@ class BC_elements(bpy.types.PropertyGroup) :
     def parent(self) :
         pass
 
+    ## selects the parent object of the current element
+    # @param attached (default False) if True returns always the builder object and not the outline
     def selectParent(self,attached=False) :
-        elm = self.asBuilder()
-        if elm.className() != 'outlines' :
-            elm = elm.peer()
+        if self.className() == 'elements' : self = self.asBuilder()
+        if self.className() != 'outlines' :
+            self = self.peer()
             attached = True
         outlines = bpy.context.scene.city.outlines
-        if elm.parent != '' :
-            elm = outlines[elm.parent]
-        elm.select(attached)
+        if self.parent != '' :
+            self = outlines[self.parent]
+        self.select(attached)
      
     def selectChild(self,attached=False) :
         outlines = bpy.context.scene.city.outlines
-        childs = self.asOutline().childList()
+        childs = self.childsList()
         if len(childs) > 0 :
             child = outlines[childs[0]]
             child.select(attached)
 
     def selectNext(self,attached=False) :
+        if self.className() == 'elements' : self = self.asBuilder()
+        if self.className() != 'outlines' :
+            self = self.peer()
+            attached = True
         outlines = bpy.context.scene.city.outlines
         if self.parent != '' :
-            siblings = outlines[self.parent].childList()
+            siblings = outlines[self.parent].childsList()
             if len(siblings) > 1 :
                 si = siblings.index(self.name)
                 sibling = outlines[siblings[(si+1)%len(siblings)]]
                 sibling.select(attached)
 
+
     def selectPrevious(self,attached=False) :
+        if self.className() == 'elements' : self = self.asBuilder()
+        if self.className() != 'outlines' :
+            self = self.peer()
+            attached = True
         outlines = bpy.context.scene.city.outlines
         if self.parent != '' :
-            siblings = outlines[self.parent].childList()
+            siblings = outlines[self.parent].childsList()
             if len(siblings) > 1 :
                 si = siblings.index(self.name)
                 sibling = outlines[siblings[(si-1)%len(siblings)]]
                 sibling.select(attached)
 
-# outlines class
+    ## add a child outline to this outline. otl.childs helper
+    # @param childname the outline name (string)
+    def childsAdd(self,childname) :
+        self = self.asOutline()
+        if self.childs == '' :
+            self.childs = childname
+        elif childname not in self.childs :
+            self.childs += ',%s'%childname
+
+    ## delete a child outline of this outline. otl.childs helper
+    # @param childname the outline name (string)
+    def childsRemove(self,childname) :
+        self = self.asOutline()
+        print('removing %s from %s : %s'%(childname,self.name,self.childs))
+        if childname in self.childs :
+            childs = self.childsList()
+            del childs[childs.index(childname)]
+            newchilds = ''
+            for child in childs : newchilds += child+','
+            self.childs = newchilds[:-1]
+        print('child list now : %s'%self.childs)
+
+    ## returns outlines parented to this one (its childs) and mentionned in otl.childs, but as a list and not a string
+    # @return a list of string (outline names) or an empty list
+    def childsList(self) :
+        self = self.asOutline()
+        if self.childs == '' :
+            return []
+        else :
+            return self.childs.split(',')
+
+##\brief the outlines collection
+#
+# this collection stores retionship between elements, and the geometry data of the outline. an outline is always attached to a builder element, and reciproquely.
+#
+# @param type not sure it's useful anymore... 
+# @param attached (string) the name of the builder object attached to it
+# @param data (dictionnary as string)stores the geometry, outline oriented, of the outline object
+# @param childs (list as string) store outlines parented to the outline element "child1,child2,.."
+# @param parent  the parent outline name if any (else '')
+
 class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
-    #name = bpy.props.StringProperty() # object name
     type   = bpy.props.StringProperty() # its tag
     attached = bpy.props.StringProperty() # its attached object name (the real mesh)
-    data = bpy.props.StringProperty(default="'perimeters':[], 'lines':[], 'dots':[] }") # global. if the outline object is missing, create from this
-    #object= bpy.props.StringProperty() # outlines / buildings / sidewalks...
+    data = bpy.props.StringProperty(default="{'perimeters':[], 'lines':[], 'dots':[], 'matrix':Matrix() }") # global. if the outline object is missing, create from this
     childs = bpy.props.StringProperty(default='')
     parent = bpy.props.StringProperty(default='')
 
-    def dataGet(self) :
-        return eval(self.data)
+    ## given an outline, retrieves its geometry as a dictionnary from the otl.data string field :
+    # @param what 'perimeters', 'lines', 'dots', 'matrix', or 'all' default is 'perimeters'
+    # @return a nested lists of vertices, or the world matrix, or all fields in a dict.
+    def dataGet(self,what='perimeters') :
+        data = eval(self.data)
+        #print('out %s'%str(data['matrix']))
+        data['matrix'] = Matrix(data['matrix'])
+        if what == 'all' : return data
+        return data[what]
 
-    def dataSet(self,data) :
-        self.data = str(data)
+    ## set or modify the geometry of an outline
+    # @param what 'perimeters', 'lines', 'dots', 'matrix', or 'all' default is 'perimeters'
+    # @param data a list with nested list of vertices or a complete dictionnary conaining the four keys
+    def dataSet(self,data,what='perimeters') :
+        pdata = self.dataGet('all')
+        if what == 'all' : pdata = data
+        pdata[what] = data
+        self.data = '{ "perimeters": ' + str(pdata['perimeters']) + ', "lines":' + str(pdata['lines']) + ', "dots":' + str(pdata['dots']) + ', "matrix":' + matToString(pdata['matrix']) +'}'
 
+    ## read the geometry of the outline object and sets its data (dataSet call)
+    # @return False if object does not exists
     def dataRead(self) :
 
         obsource=self.object()
         if obsource :
+            mat, perim = outlineRead(obsource)
+            '''
             mat=obsource.matrix_world
             if len(obsource.modifiers) :
                 sce = bpy.context.scene
@@ -248,20 +323,23 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
                         perim.append(newperim)
                         perimz.append(newperimz)
                         go=False
-
-            data = { 'perimeters':[], 'lines':[], 'dots':[] }
-            #data['perimeters'] = [ perim, perimz ]
-            data['perimeters'] = perim
-            self.dataSet(data)
+            '''
+            #data = { 'matrix':[], 'perimeters':[], 'lines':[], 'dots':[] }
+            #data['matrix'] = mat
+            #data['perimeters'] = perim
+            self.dataSet(perim)
+            #print('send %s'%mat)
+            self.dataSet(mat,'matrix')
             return True
         else : return False
 
+    ## write the geometry in the outline object from its data field (dataGet call)
     def dataWrite(self) :
         data = self.dataGet()
         verts = []
         edges = []
         ofs = 0
-        for perimeter in data['perimeters'] :
+        for perimeter in data :
             print('>',len(perimeter))
             for vi,v in enumerate(perimeter) :
                 print(vi,v)
@@ -273,19 +351,18 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
         print('>',verts,edges)
         print(len(verts),len(edges))
         ob = createMeshObject(self.name,verts,edges)
+        ob.matrix_world = Matrix()
         self.asElement().pointer = str(ob.as_pointer())
 
-    def childAdd(self,childname) :
-        if self.childs == '' :
-            self.childs = childname
-        else :
-            self.childs += ',%s'%childname
-            
-    def childList(self) :
-        if self.childs == '' :
-            return []
-        else :
-            return self.childs.split(',')
-
-
-# builders classes inherit all methods from elements
+    ## rename an outline, rewrite relationships, update element
+    # not sure that's a good idea.. though it could be used by elementRemove(), wait and see
+    def rename(self,name) :
+        city = bpy.context.scene.city
+        oldname = self.name
+        self.name = name
+        if self.parent != '' :
+            city.outlines[self.parent].childRemove(oldname)
+            city.outlines[self.parent].childsAdd(name)
+        for child in self.childslist() :
+            city.outlines[child].parent = name
+        self.asElement().name = name

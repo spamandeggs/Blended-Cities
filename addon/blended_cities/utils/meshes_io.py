@@ -1,11 +1,84 @@
 ##\file
 # meshes_io.py
 # set of functions used by builders
-
+print('meshes_io.py')
 import bpy
 import mathutils
+import random
 from mathutils import *
 import collections
+
+from blended_cities.core.class_main import *
+
+def matToString(mat) :
+    #print('*** %s %s'%(mat,type(mat)))
+    return str(mat).replace('\n       ','')[6:]
+
+def stringToMat(string) :
+    return Matrix(eval(string))
+
+## retrieve
+def outlineRead(obsource) :
+            
+            mat=Matrix(obsource.matrix_world)
+
+            if len(obsource.modifiers) :
+                sce = bpy.context.scene
+                source = obsource.to_mesh(sce, True, 'PREVIEW')
+            else :
+                source=obsource.data
+            verts=[ v.co for v in source.vertices[:] ]
+            edges=[ e.vertices for e in source.edges[:] ]
+            if len(obsource.modifiers) :
+                bpy.data.meshes.remove(source)
+
+            for vi,v in enumerate(verts) :
+                x,y,z = v * mat # for global
+                x = int(x * 1000000) / 1000000
+                y = int(y * 1000000) / 1000000
+                z = int(z * 1000000) / 1000000
+                verts[vi]=Vector((x,y,z))
+
+            neighList=[[] for v in range(len(verts))]
+            for e in edges :
+                neighList[e[0]].append(e[1])
+                neighList[e[1]].append(e[0])
+           # todo some tests to check if it's a perimeter : closed, only 2 neighbours/verts, no intersection, only one perimeter..
+            # assuming the user if someone kind for now, shut up greg.
+            # retrieve all perimeters in the outline
+            lst = [ i for i in range(len(verts)) ]
+            vertcount = 0
+            perim = [ ]
+            perimz = [ ]
+
+            while vertcount < len(verts) :
+                for i,startvert in enumerate(lst) :
+                    if startvert != -1 :
+                        lst[i] = -1
+                        break
+                        
+                vi = startvert
+                pvi = startvert
+                vertcount += 1
+                #perimid = 0
+                go=True
+
+                newperim = [ verts[startvert] ]
+                newperimz = collections.Counter()
+                while go :
+                    nvi = neighList[vi][0] if neighList[vi][0] != pvi else neighList[vi][1]
+                    if nvi != startvert : 
+                        newperim.append( verts[nvi] )
+                        newperimz[verts[nvi][2]] += 1
+                        lst[nvi] = -1
+                        pvi = vi
+                        vi = nvi
+                        vertcount += 1
+                    else :
+                        perim.append(newperim)
+                        perimz.append(newperimz)
+                        go=False
+            return mat, perim
 
 def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
     global debug
@@ -81,6 +154,19 @@ def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
         return Vector([xmin,ymin,0]),Vector([xmax-xmin,ymax-ymin,0])
 
 
+def ObjectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
+    obname = elm.objectName()
+    if obname == False :
+        obname = elm.name
+    ob = createMeshObject(obname, verts, [], faces, matslots, mats)
+    otl = elm.peer()
+    ob.parent = otl.object()
+    ob.matrix_world = Matrix()
+    city = bpy.context.scene.city
+    city.elements[elm.name].pointer = str(ob.as_pointer())
+    return ob
+
+
 def wipeOutObject(ob,and_data=True) :
     if type(ob) == str :
         try : ob = bpy.data.objects[ob]
@@ -152,6 +238,8 @@ def wipeOutData(data) :
 
 def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
 
+    warn = [] # log some event
+
     # naming consistency for mesh w/ one user
     if name in bpy.data.objects :
         mesh = bpy.data.objects[name].data
@@ -180,7 +268,13 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
     # material slots
     if len(matslots) > 0 :
         for matname in matslots :
-            mat = bpy.data.materials[matname]
+            if matname not in bpy.data.materials :
+                mat = bpy.data.materials.new(name=matname)
+                mat.diffuse_color=( random.uniform(0.0,1.0),random.uniform(0.0,1.0),random.uniform(0.0,1.0))
+                mat.use_fake_user = True
+                warn.append('Created a missing material : %s'%matname)
+            else :
+                mat = bpy.data.materials[matname]
             mesh.materials.append(mat)
 
     # map a material to each face
@@ -232,17 +326,17 @@ def zcoords(vertslists,offset=0) :
 def updateChildHeight(otl,height) :
     print('update childs of %s : %s'%(otl.name,otl.childs ))
     city = bpy.context.scene.city
-    childs=otl.childList()
+    childs=otl.childsList()
     for childname in childs :
         print(' . %s'%childname)
         #verts, edges, edgesW , bounds = readMeshMap(childname,True,1)
         otl_child = city.outlines[childname]
         data = otl_child.dataGet()
-        for perimeter in data['perimeters'] :
+        for perimeter in data :
             for vert in perimeter :
                 vert[2] = height
         otl_child.dataSet(data)
-
+        otl_child.dataWrite()
         bld_child = otl_child.peer()
-        bld_child.build(False)
+        bld_child.build(True)
 

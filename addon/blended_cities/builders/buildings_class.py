@@ -4,11 +4,11 @@
 # should act as a reference for other builders files.
 #
 # builders ui can use existing methods (operators, buttons, panels..)
-
+# 
 import bpy
 import mathutils
 from mathutils import *
-from blended_cities.bin.class_main import *
+from blended_cities.core.class_main import *
 from blended_cities.utils.meshes_io import *
 
 ## building builder class
@@ -16,6 +16,9 @@ from blended_cities.utils.meshes_io import *
 # should act as a reference for other builders class.
 #
 # builders ui can use existing methods (operators, buttons, panels..)
+# each builder class define its own field, depending of the needed parametrics. but some field are mandatory
+#
+#
 class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
     #name = bpy.props.StringProperty()
     attached = bpy.props.StringProperty()   # the perimeter object
@@ -54,6 +57,8 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
     materialslots = ['floor','inter']
     materials = ['floor','inter']
 
+    ## every builder class must have a function named build().
+    # this is were the shape attached to the outline is built
     def build(self,refreshData=True) :
         return buildBox(self,refreshData)
 
@@ -87,7 +92,6 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
 
 
 def buildBox(self,refreshData=True) :
-    city = bpy.context.scene.city
     otl = self.peer()
     print('build box %s (outline %s)'%(self.name,otl.name))
 
@@ -98,9 +102,10 @@ def buildBox(self,refreshData=True) :
     if refreshData :
         print('refresh data')
         print(otl.dataRead())
-    perimeter = otl.dataGet()['perimeters']
+    perimeter = otl.dataGet('perimeters')
+    mtx       = otl.dataGet('matrix')
     zlist = zcoords(perimeter)
-    print('perim %s'%(perimeter))
+    #print('perim %s'%(perimeter))
     print('max height %s'%max(zlist))
     
 
@@ -114,7 +119,7 @@ def buildBox(self,refreshData=True) :
 
         fpf = len(perimeter[id]) # nb of faces per floor
 
-        # non planar outlines : add simple fundation. todo : should be part of floors
+        # non planar outlines : add simple fundations. todo : should be part of floors
         if max(zlist) - min(zlist) > 0.000001 :
             verts.extend( perimeter[id] )
             faces.extend( facesLoop(fof,fpf) )
@@ -132,19 +137,21 @@ def buildBox(self,refreshData=True) :
                 mat_id = zi%2
                 mats.extend( mat_id for i in range(fpf) )
             fof += fpf
-    
+
+    ob = ObjectBuild(self, verts, [], faces, matslots, mats)
+    '''
+    # below are general methods applied to builders, should be elsewhere 
     obname = self.objectName()
     if obname == False :
         obname = self.name
-    #    print('created %s'%obname)
-    #else : print('found object %s'%obname)
 
     ob = createMeshObject(obname, verts, [], faces, matslots, mats)
-    
+    ob.parent = otl.object()
+    ob.matrix_world = Matrix()
+    city = bpy.context.scene.city
     city.elements[self.name].pointer = str(ob.as_pointer())
-    
+    '''
     height = self.height() + max(zlist)
-    
     updateChildHeight(otl,height)
 
 

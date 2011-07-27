@@ -1,7 +1,7 @@
 import bpy
 import mathutils
 from mathutils import *
-from blended_cities.bin.class_main import *
+from blended_cities.core.class_main import *
 from blended_cities.utils.meshes_io import *
 
 class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
@@ -15,10 +15,8 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
         )
     materialslots = ['floor','inter']
     materials = ['floor','inter']
-
     def build(self,refreshData=True) :
         return buildBox(self,refreshData)
-
 
 
 def buildBox(self,refreshData=True) :
@@ -33,7 +31,7 @@ def buildBox(self,refreshData=True) :
     if refreshData :
         print('refresh data')
         print(otl.dataRead())
-    perimeters = otl.dataGet()['perimeters']
+    perimeters = otl.dataGet()
 
     verts = []
     faces = []
@@ -56,11 +54,7 @@ def buildBox(self,refreshData=True) :
     #bpy.ops.mesh.fill()
     #bpy.ops.object.mode_set(mode='OBJECT')
 
-    
-    obname = self.objectName()
-    if obname == False :
-        obname = self.name
 
-    ob = createMeshObject(obname, verts, [], faces, [], [])
+    ob = ObjectBuild(self, verts, [], faces, [], [])
     city.elements[self.name].pointer = str(ob.as_pointer())
     

@@ -2,6 +2,32 @@ Blended Cities for blender 2.5 series
 continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
+
+2011/07/27
+. outline and builder are now parented. outline and outline childs too.
+. code cleaning. more documentation
+. appended 'bin' to 'core' mod by ondrej 
+
+2011/07/26
+. can be enabled by default. can be disabled without complaining. can reload the builders classes and submodules without restarting blender, if addons dependencies v0.3 is installed http://jerome.le.chat.free.fr/index.php/en/download/blender/addon-dependencies-download.html
+with the normal addon utils tool, this can't be reenabled without restarting Blender utils since this one does not clean sys.modules : the BC_builders class is created at init time (exec code. stores the builders pointers that are gathered from the builders folder) and blender find it in its sys.module whereas it has not been created yet : it fails.
+without the mod, RIGHT after having disabled the addon, one can copy this in a text block :
+
+import sys
+module_name = 'blended_cities'
+for m in dict(sys.modules) :
+    if module_name + '.' == m[0:len(module_name) +1 ] :
+        print('\taddon_utils.removing %s child : %s'%(module_name,m[len(module_name) +1:]))
+        del sys.modules[m]
+try : del sys.modules[module_name]
+except : pass
+
+.. then run it. this should refresh the builders files and the other at the same occasion without restarting.
+
+. uploaded the documentation here
+http://jerome.le.chat.free.fr/projets/blendedCities25/documentation/internal/html/index.html
+can be retrieved from github too but destined to collaborative updates.
+
 2011/07/25
 . internal documentation ( doxygen ) created /documentation/internal/html. begin to document internal code, cleaning, naming convention.
 . debug. renamed some function : inElement -> asElement, inClass -> asBuilder, inOutlines -S asOutline
