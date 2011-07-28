@@ -60,7 +60,56 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
     ## every builder class must have a function named build().
     # this is were the shape attached to the outline is built
     def build(self,refreshData=True) :
-        return buildBox(self,refreshData)
+        otl = self.peer()
+        print('** build() %s (outline %s)'%(self.name,otl.name))
+
+        matslots = ['floor','inter'] 
+        mat_floor = 0
+        mat_inter = 1
+
+        if refreshData :
+            print('refresh data asked')
+            otl.dataRead()
+        perimeter = otl.dataGet('perimeters')
+        mtx       = otl.dataGet('matrix')
+        zlist = zcoords(perimeter)
+        #print('perim %s'%(perimeter))
+        print('max height %s'%max(zlist))
+        
+        verts = []
+        faces = []
+        mats  = []
+
+        fof = 0 # 'floor' vertex id offset
+
+        for id in range(len(perimeter)) :
+
+            fpf = len(perimeter[id]) # nb of faces per floor
+
+            # non planar outlines : add simple fundations. todo : should be part of floors
+            if max(zlist) - min(zlist) > 0.000001 :
+                verts.extend( perimeter[id] )
+                faces.extend( facesLoop(fof,fpf) )
+                mats.extend( mat_floor for i in range(fpf) )
+                fof += fpf
+
+            zs = self.heights(max(zlist))#bounds[2][0])
+            for zi,z in enumerate(zs) :
+                for c in perimeter[id] :
+                    verts.append( Vector(( c[0],c[1],z )) )
+                
+                # while roof not reached, its a floor so add faces and mats
+                if z != zs[-1] : 
+                    faces.extend( facesLoop(fof,fpf) )
+                    mat_id = zi%2
+                    mats.extend( mat_id for i in range(fpf) )
+                fof += fpf
+
+        ob = objectBuild(self, verts, [], faces, matslots, mats)
+
+        height = self.height() + max(zlist)
+        updateChildHeight(otl,height)
+        print('* end build()')
 
     def heights(self,offset=0) :
         city = bpy.context.scene.city
@@ -89,70 +138,6 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
  
     def height(self,offset=0) :
         return self.heights(offset)[-1]
-
-
-def buildBox(self,refreshData=True) :
-    otl = self.peer()
-    print('build box %s (outline %s)'%(self.name,otl.name))
-
-    matslots = ['floor','inter'] 
-    mat_floor = 0
-    mat_inter = 1
-
-    if refreshData :
-        print('refresh data')
-        print(otl.dataRead())
-    perimeter = otl.dataGet('perimeters')
-    mtx       = otl.dataGet('matrix')
-    zlist = zcoords(perimeter)
-    #print('perim %s'%(perimeter))
-    print('max height %s'%max(zlist))
-    
-
-    verts = []
-    faces = []
-    mats  = []
-
-    fof = 0 # 'floor' vertex id offset
-
-    for id in range(len(perimeter)) :
-
-        fpf = len(perimeter[id]) # nb of faces per floor
-
-        # non planar outlines : add simple fundations. todo : should be part of floors
-        if max(zlist) - min(zlist) > 0.000001 :
-            verts.extend( perimeter[id] )
-            faces.extend( facesLoop(fof,fpf) )
-            mats.extend( mat_floor for i in range(fpf) )
-            fof += fpf
-
-        zs = self.heights(max(zlist))#bounds[2][0])
-        for zi,z in enumerate(zs) :
-            for c in perimeter[id] :
-                verts.append( Vector(( c[0],c[1],z )) )
-            
-            # while roof not reached, its a floor so add faces and mats
-            if z != zs[-1] : 
-                faces.extend( facesLoop(fof,fpf) )
-                mat_id = zi%2
-                mats.extend( mat_id for i in range(fpf) )
-            fof += fpf
-
-    ob = ObjectBuild(self, verts, [], faces, matslots, mats)
-    '''
-    # below are general methods applied to builders, should be elsewhere 
-    obname = self.objectName()
-    if obname == False :
-        obname = self.name
-
-    ob = createMeshObject(obname, verts, [], faces, matslots, mats)
-    ob.parent = otl.object()
-    ob.matrix_world = Matrix()
-    city = bpy.context.scene.city
-    city.elements[self.name].pointer = str(ob.as_pointer())
-    '''
-    height = self.height() + max(zlist)
-    updateChildHeight(otl,height)
 
 
 def register() :

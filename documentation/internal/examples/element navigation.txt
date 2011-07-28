@@ -9,6 +9,9 @@ city = bpy.context.scene.city
 obj = bpy.context.active_object
 elm, otl= city.elementGet(obj)
 
+objname = 'buildings.00000'
+elm, otl = city.elementGet(objname)
+
 # returns the internal name of the element :
 elm.name
 

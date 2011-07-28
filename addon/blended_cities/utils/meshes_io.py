@@ -10,12 +10,52 @@ import collections
 
 from blended_cities.core.class_main import *
 
+## check if there's nested lists in a list. used by functions that need
+# list(s) of vertices as input
+# returns the given list always nested,
+# and a bolean : True if was nested, False if was not
+def nested(lst) :
+    try :
+        t = lst[0][0][0]
+        return lst, True
+    except :
+        return [lst], False
+
 def matToString(mat) :
     #print('*** %s %s'%(mat,type(mat)))
     return str(mat).replace('\n       ','')[6:]
 
 def stringToMat(string) :
     return Matrix(eval(string))
+
+
+def buToMeters(vertslists) :
+    vertslists, nest = nested(vertslists)
+    scale = bpy.context.scene.unit_settings.scale_length
+    meterslists = []
+
+    for verts in vertslists :
+        meters = []
+        for vert in verts :
+            meters.append(Vector(vert) * scale)
+        meterslists.append(meters)
+        
+    if nest : return meterslists
+    else : return meterslists[0]
+
+def metersToBu(vertslists) :
+    vertslists, nest = nested(vertslists)
+    scale = bpy.context.scene.unit_settings.scale_length
+    meterslists = []
+
+    for verts in vertslists :
+        meters = []
+        for vert in verts :
+            meters.append(Vector(vert) / scale)
+        meterslists.append(meters)
+        
+    if nest : return meterslists
+    else : return meterslists[0]
 
 ## retrieve
 def outlineRead(obsource) :
@@ -27,11 +67,13 @@ def outlineRead(obsource) :
                 source = obsource.to_mesh(sce, True, 'PREVIEW')
             else :
                 source=obsource.data
+
             verts=[ v.co for v in source.vertices[:] ]
             edges=[ e.vertices for e in source.edges[:] ]
             if len(obsource.modifiers) :
                 bpy.data.meshes.remove(source)
 
+            # apply world to verts and round them a bit
             for vi,v in enumerate(verts) :
                 x,y,z = v * mat # for global
                 x = int(x * 1000000) / 1000000
@@ -43,14 +85,14 @@ def outlineRead(obsource) :
             for e in edges :
                 neighList[e[0]].append(e[1])
                 neighList[e[1]].append(e[0])
-           # todo some tests to check if it's a perimeter : closed, only 2 neighbours/verts, no intersection, only one perimeter..
-            # assuming the user if someone kind for now, shut up greg.
-            # retrieve all perimeters in the outline
+            # todo some tests to check if it's a perimeter : closed, only 2 neighbours/verts, no intersection, only one perimeter..
+            # assuming the user if someone kind for now, shut up greg. 
+
             lst = [ i for i in range(len(verts)) ]
             vertcount = 0
             perim = [ ]
-            perimz = [ ]
 
+            # perimeters and lines
             while vertcount < len(verts) :
                 for i,startvert in enumerate(lst) :
                     if startvert != -1 :
@@ -60,24 +102,21 @@ def outlineRead(obsource) :
                 vi = startvert
                 pvi = startvert
                 vertcount += 1
-                #perimid = 0
                 go=True
 
                 newperim = [ verts[startvert] ]
-                newperimz = collections.Counter()
                 while go :
                     nvi = neighList[vi][0] if neighList[vi][0] != pvi else neighList[vi][1]
                     if nvi != startvert : 
                         newperim.append( verts[nvi] )
-                        newperimz[verts[nvi][2]] += 1
                         lst[nvi] = -1
                         pvi = vi
                         vi = nvi
                         vertcount += 1
                     else :
                         perim.append(newperim)
-                        perimz.append(newperimz)
                         go=False
+
             return mat, perim
 
 def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
@@ -154,19 +193,6 @@ def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
         return Vector([xmin,ymin,0]),Vector([xmax-xmin,ymax-ymin,0])
 
 
-def ObjectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
-    obname = elm.objectName()
-    if obname == False :
-        obname = elm.name
-    ob = createMeshObject(obname, verts, [], faces, matslots, mats)
-    otl = elm.peer()
-    ob.parent = otl.object()
-    ob.matrix_world = Matrix()
-    city = bpy.context.scene.city
-    city.elements[elm.name].pointer = str(ob.as_pointer())
-    return ob
-
-
 def wipeOutObject(ob,and_data=True) :
     if type(ob) == str :
         try : ob = bpy.data.objects[ob]
@@ -236,15 +262,43 @@ def wipeOutData(data) :
         print('%s has %s user(s) !'%(data.name,data.users))
 
 
+
+def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
+    print('build element %s (%s)'%(elm,elm.className()))
+    city = bpy.context.scene.city
+    # apply current scale
+    verts = metersToBu(verts)
+    
+    obname = elm.objectName()
+    if obname == False :
+        obname = elm.name
+    ob = createMeshObject(obname, verts, edges, faces, matslots, mats)
+    elm.asElement().pointer = str(ob.as_pointer())
+    if elm.className() == 'outlines' :
+        if elm.parent :
+            ob.parent = city.outlines[elm.parent].object()
+    else :
+        otl = elm.asOutline()
+        ob.parent = otl.object()
+    ob.matrix_world = Matrix()
+
+
+
+    return ob
+
+
+
 def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
 
     warn = [] # log some event
 
+
     # naming consistency for mesh w/ one user
     if name in bpy.data.objects :
         mesh = bpy.data.objects[name].data
-        if mesh.users == 1 : mesh.name = name
-
+        if mesh :
+            if mesh.users == 1 : mesh.name = name
+        else : print('createMeshObject : no mesh found in %s'%name)
     # update mesh/object
     if name in bpy.data.meshes :
         mesh = bpy.data.meshes[name]
@@ -324,7 +378,7 @@ def zcoords(vertslists,offset=0) :
 
 
 def updateChildHeight(otl,height) :
-    print('update childs of %s : %s'%(otl.name,otl.childs ))
+    print('** update childs of %s : %s'%(otl.name,otl.childs ))
     city = bpy.context.scene.city
     childs=otl.childsList()
     for childname in childs :

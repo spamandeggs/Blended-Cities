@@ -55,6 +55,6 @@ def buildBox(self,refreshData=True) :
     #bpy.ops.object.mode_set(mode='OBJECT')
 
 
-    ob = ObjectBuild(self, verts, [], faces, [], [])
+    ob = objectBuild(self, verts, [], faces, [], [])
     city.elements[self.name].pointer = str(ob.as_pointer())
     

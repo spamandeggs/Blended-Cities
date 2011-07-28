@@ -1,18 +1,19 @@
-##\mainpage Blended Cities internal documentation
+##@mainpage Blended Cities internal documentation
 # v0.6 for Blender 2.5.8a
 #
-# this is the continuation of a project begun with previous release of blender :
+# this is the continuation of a project begun with 2.4x releases of blender :
 #
-# http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
+# http://jerome.le.chat.free.fr/index.php/en/city-engine
 #
-# the version number starts after the last blended cities release for 2.49b but this is tests stage for now (july 2011)
+# the version number starts after the last blended cities release for 2.49b \
+# but this is tests stage for now (july 2011)
 
 ##@file
 # main.py
 # the main city class
 # bpy.context.scene.city
 # the file calls the other modules and holds the main city methods
-print('main.py')
+
 # class_import is responsible for loading the builders classes and guis from the builder folder
 # this id done now before the city main class to register
 # in order to give pointers towards builders to the main class
@@ -59,6 +60,7 @@ class BlendedCities(bpy.types.PropertyGroup) :
     ## create a new element
     # @return elm, otl (the new element in its class, and its outline)
     def elementAdd(self,elm, outlineOb=False,outlineName='outlines') :
+        print('** element add')
         # a class name is given :
         if type(elm) == str :
             elementClassName=elm.split('.')[0]
@@ -122,12 +124,13 @@ class BlendedCities(bpy.types.PropertyGroup) :
             print('parented to %s'%(otl.parent))
         else :
             new.build()
-
+        print('* element add done')
         return new, otl
 
     ## remove an existing element given an object or an element of any kind
     # will only let the outline object
     def elementRemove(self,object=False) :
+        print('** element Remove')
         print(object,type(object))
         if object :
             blr, otl = self.elementGet(object)
@@ -159,6 +162,8 @@ class BlendedCities(bpy.types.PropertyGroup) :
                 ielm  = blr.asElement().index()
                 self.elements.remove(ielm)
                 blrclass.remove(iblr)
+        print('** element Remove done')
+
 
     ## given an object or its name, returns a city element (in its class)
     # @return elm, otl (the new element in its class, and its outline). false if does not exists
@@ -188,7 +193,7 @@ class BlendedCities(bpy.types.PropertyGroup) :
             len(bpy.context.selected_objects) == 1 and \
             type(bpy.context.active_object.data) == bpy.types.Mesh :
                 elm,otl = city.elementGet(bpy.context.active_object)
-                elm.build(True)
+                if elm : elm.build(True)
             '''
                 if elm.className() == 'buildings' or elm.peer().className() == 'buildings' :
                     print('rebuild')
@@ -240,7 +245,7 @@ class BlendedCities(bpy.types.PropertyGroup) :
     ## clean everything, restore the defaults
     # configure also the modal (it won't if BC is enabled by default, for now must be started by hand with city.modalConfig() )
     def init(self) :
-        scene = bpy.data.scenes[0]
+        scene = bpy.context.scene
         city = scene.city
         while len(city.elements) > 0 :
             city.elements.remove(0)
@@ -250,6 +255,9 @@ class BlendedCities(bpy.types.PropertyGroup) :
             city.outlines.remove(0)
         bpy.context.scene.city.modalConfig()
 
+        # scale
+        bpy.context.scene.unit_settings.system = 'METRIC'
+        
 # register_class() for BC_builders and builders classes are made before
 # the BlendedCities definition class_import
 # else every module is register here

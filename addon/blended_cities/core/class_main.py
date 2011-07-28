@@ -239,12 +239,17 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
     childs = bpy.props.StringProperty(default='')
     parent = bpy.props.StringProperty(default='')
 
-    ## given an outline, retrieves its geometry as a dictionnary from the otl.data string field :
+    ## given an outline, retrieves its geometry in meters as a dictionnary from the otl.data string field :
     # @param what 'perimeters', 'lines', 'dots', 'matrix', or 'all' default is 'perimeters'
     # @return a nested lists of vertices, or the world matrix, or all fields in a dict.
-    def dataGet(self,what='perimeters') :
+    def dataGet(self,what='perimeters',meters=True) :
         data = eval(self.data)
-        #print('out %s'%str(data['matrix']))
+        if meters :
+            print('dataGet returns %s %s datas in Meters'%(self.name,what))
+            data['perimeters'] = buToMeters(data['perimeters'])
+            data['lines'] = buToMeters(data['lines'])
+            data['dots'] = buToMeters(data['dots'])
+        else : print('dataGet returns %s %s datas in B.U.'%(self.name,what))          
         data['matrix'] = Matrix(data['matrix'])
         if what == 'all' : return data
         return data[what]
@@ -252,89 +257,38 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
     ## set or modify the geometry of an outline
     # @param what 'perimeters', 'lines', 'dots', 'matrix', or 'all' default is 'perimeters'
     # @param data a list with nested list of vertices or a complete dictionnary conaining the four keys
-    def dataSet(self,data,what='perimeters') :
-        pdata = self.dataGet('all')
+    def dataSet(self,data,what='perimeters',meters=True) :
+        pdata = self.dataGet('all',meters)
         if what == 'all' : pdata = data
         pdata[what] = data
+        if meters :
+            print('dataSet received %s %s datas in meters :'%(self.name,what)) 
+            pdata['perimeters'] = metersToBu(pdata['perimeters'])
+            pdata['lines'] = metersToBu(pdata['lines'])
+            pdata['dots'] = metersToBu(pdata['dots'])
+        else :
+            print('dataSet received %s %s datas in BU :'%(self.name,what))
         self.data = '{ "perimeters": ' + str(pdata['perimeters']) + ', "lines":' + str(pdata['lines']) + ', "dots":' + str(pdata['dots']) + ', "matrix":' + matToString(pdata['matrix']) +'}'
 
     ## read the geometry of the outline object and sets its data (dataSet call)
     # @return False if object does not exists
     def dataRead(self) :
-
+        print('dataRead outline ob of %s'%self.name)
         obsource=self.object()
         if obsource :
+            # data extracted are in BU no meter so dataSet boolean is False
             mat, perim = outlineRead(obsource)
-            '''
-            mat=obsource.matrix_world
-            if len(obsource.modifiers) :
-                sce = bpy.context.scene
-                source = obsource.to_mesh(sce, True, 'PREVIEW')
-            else :
-                source=obsource.data
-            verts=[ v.co for v in source.vertices[:] ]
-            edges=[ e.vertices for e in source.edges[:] ]
-            if len(obsource.modifiers) :
-                bpy.data.meshes.remove(source)
-
-            for vi,v in enumerate(verts) :
-                x,y,z = v * mat
-                x = int(x * 1000000) / 1000000
-                y = int(y * 1000000) / 1000000
-                z = int(z * 1000000) / 1000000
-                verts[vi]=Vector((x,y,z))
-
-            neighList=[[] for v in range(len(verts))]
-            for e in edges :
-                neighList[e[0]].append(e[1])
-                neighList[e[1]].append(e[0])
-           # todo some tests to check if it's a perimeter : closed, only 2 neighbours/verts, no intersection, only one perimeter..
-            # assuming the user if someone kind for now, shut up greg.
-            # retrieve all perimeters in the outline
-            lst = [ i for i in range(len(verts)) ]
-            vertcount = 0
-            perim = [ ]
-            perimz = [ ]
-
-            while vertcount < len(verts) :
-                for i,startvert in enumerate(lst) :
-                    if startvert != -1 :
-                        lst[i] = -1
-                        break
-                        
-                vi = startvert
-                pvi = startvert
-                vertcount += 1
-                #perimid = 0
-                go=True
-
-                newperim = [ verts[startvert] ]
-                newperimz = collections.Counter()
-                while go :
-                    nvi = neighList[vi][0] if neighList[vi][0] != pvi else neighList[vi][1]
-                    if nvi != startvert : 
-                        newperim.append( verts[nvi] )
-                        newperimz[verts[nvi][2]] += 1
-                        lst[nvi] = -1
-                        pvi = vi
-                        vi = nvi
-                        vertcount += 1
-                    else :
-                        perim.append(newperim)
-                        perimz.append(newperimz)
-                        go=False
-            '''
-            #data = { 'matrix':[], 'perimeters':[], 'lines':[], 'dots':[] }
-            #data['matrix'] = mat
-            #data['perimeters'] = perim
-            self.dataSet(perim)
-            #print('send %s'%mat)
-            self.dataSet(mat,'matrix')
+            self.dataSet(perim,'perimeters',False)
+            self.dataSet(mat,'matrix',False)
             return True
-        else : return False
-
+        else :
+            print('no object !')
+            return False
+        print('dataReaddone')
     ## write the geometry in the outline object from its data field (dataGet call)
+    # inputs and outputs are in meters
     def dataWrite(self) :
+        print('dataWrite outline ob for %s'%self.name)
         data = self.dataGet()
         verts = []
         edges = []
@@ -350,9 +304,10 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
             ofs += len(perimeter)
         print('>',verts,edges)
         print(len(verts),len(edges))
-        ob = createMeshObject(self.name,verts,edges)
+        ob = objectBuild(self,verts,edges)
         ob.matrix_world = Matrix()
-        self.asElement().pointer = str(ob.as_pointer())
+        print('dataWrite done')
+        #self.asElement().pointer = str(ob.as_pointer())
 
     ## rename an outline, rewrite relationships, update element
     # not sure that's a good idea.. though it could be used by elementRemove(), wait and see
