@@ -356,7 +356,7 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
         print('>',verts,edges)
         print(len(verts),len(edges))
         ob = objectBuild(self,verts,edges)
-        ob.matrix_world = Matrix()
+        #ob.matrix_local = Matrix()
         print('dataWrite done')
         #self.asElement().pointer = str(ob.as_pointer())
 
