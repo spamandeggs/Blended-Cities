@@ -122,9 +122,9 @@ class OP_BC_buildersMethods(bpy.types.Operator) :
             blg_child.inherit = True
             blg_child.build()
             otl_child.object().parent = otl_parent.object()
-            otl_child.object().matrix_world = Matrix()
+            #otl_child.object().matrix_local = Matrix()
             blg_child.object().parent = otl_child.object()
-            blg_child.object().matrix_world = Matrix()
+            #blg_child.object().matrix_local = Matrix()
             blg_child.select()
 
             

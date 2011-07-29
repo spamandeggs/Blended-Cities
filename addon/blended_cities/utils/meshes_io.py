@@ -60,7 +60,7 @@ def metersToBu(vertslists) :
 ## retrieve
 def outlineRead(obsource) :
             
-            mat=Matrix(obsource.matrix_world)
+            mat=Matrix(obsource.matrix_local)
 
             if len(obsource.modifiers) :
                 sce = bpy.context.scene
@@ -75,7 +75,7 @@ def outlineRead(obsource) :
 
             # apply world to verts and round them a bit
             for vi,v in enumerate(verts) :
-                x,y,z = v * mat # for global
+                x,y,z = v# * mat # for global
                 x = int(x * 1000000) / 1000000
                 y = int(y * 1000000) / 1000000
                 z = int(z * 1000000) / 1000000
@@ -125,7 +125,7 @@ def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
     scale=float(scale)
 
     obsource=bpy.data.objects[objectSourceName]
-    mat=obsource.matrix_world
+    mat=obsource.matrix_local
     #scaleX, scaleY, scaleZ = obsource.scale
     #rmat=mat.rotationPart().resize4x4()
     #if atLocation :
@@ -280,10 +280,8 @@ def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
     else :
         otl = elm.asOutline()
         ob.parent = otl.object()
-    ob.matrix_world = Matrix()
-
-
-
+    #ob.matrix_local = Matrix()
+    
     return ob
 
 
@@ -386,6 +384,8 @@ def updateChildHeight(otl,height) :
         print(' . %s'%childname)
         #verts, edges, edgesW , bounds = readMeshMap(childname,True,1)
         otl_child = city.outlines[childname]
+        # force re-read of data
+        otl_child.dataRead()
         data = otl_child.dataGet()
         for perimeter in data :
             for vert in perimeter :
