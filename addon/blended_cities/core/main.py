@@ -18,29 +18,41 @@
 # this id done now before the city main class to register
 # in order to give pointers towards builders to the main class
 
+
+import sys
+import copy
+import collections
+
+import bpy
+import blf
+import mathutils
+from mathutils import *
+
 #from blended_cities.core.ui import *
 #from blended_cities.core.class_import import *
 from blended_cities.core.class_main import *
 from blended_cities import BC_builders
 from blended_cities.utils.meshes_io import *
-#buildersRegister()
-
-import bpy
-import blf
-import sys
-import copy
-#from copy import deepcopy
-import mathutils
-from mathutils import *
-import collections
-debug = False
 
 
-# should be somewhere else
+## should be the system from script events with logger popup etc.
 def dprint(str,level=1) :
     city = bpy.context.scene.city
     if level <= city.debuglevel :
         print(str)
+
+
+## return the active builder classes in a list
+def builderClass() :
+    scene = bpy.context.scene
+    city = scene.city
+    buildersList = []
+    for k in city.builders.keys() :
+        if type(city.builders[k]) == list :
+            dprint('found builder %s'%(k),2)
+            builderCollection = eval('city.builders.%s'%k)
+            buildersList.append(builderCollection)
+    return buildersList
 
 
 ## bpy.context.scene.city
@@ -49,18 +61,17 @@ class BlendedCities(bpy.types.PropertyGroup) :
     elements = bpy.props.CollectionProperty(type=BC_elements)
     outlines = bpy.props.CollectionProperty(type=BC_outlines)
     builders = bpy.props.PointerProperty(type=BC_builders)
-    #tagitems = ( ('buildings','building lot','a building lot'),('child','child','a child element') )
-    #tagmenu  = bpy.props.EnumProperty( items = tagitems,  default = 'buildings', name = "Tag",  description = "" )
     debuglevel = bpy.props.IntProperty(default=1)
-    builders_info = {} # should be a collection
+    builders_info = {} # info about builder authoring, should be a collection too. usage, could use bl_info..
 
     bc_go = bpy.props.BoolProperty()
     bc_go_once = bpy.props.BoolProperty()
 
+
     ## create a new element
     # @return elm, otl (the new element in its class, and its outline)
     def elementAdd(self,elm, outlineOb=False,outlineName='outlines') :
-        print('** element add')
+        dprint('** element add')
         # a class name is given :
         if type(elm) == str :
             elementClassName=elm.split('.')[0]
@@ -73,14 +84,14 @@ class BlendedCities(bpy.types.PropertyGroup) :
             otl_dad = elm.peer()
             outlineName=otl_dad.nameMain()
             isChild = True
-            print('dad : %s %s'%(otl_dad,otl_dad.name))
-        print('class : %s'%(elementClassName))
+            dprint('dad : %s %s'%(otl_dad,otl_dad.name))
+        dprint('class : %s'%(elementClassName))
 
-        print('ischild : %s'%(isChild))
+        dprint('ischild : %s'%(isChild))
         # check if the class exist
         try : elmclass = eval('bpy.context.scene.city.builders.%s'%elementClassName)
         except :
-            print('class %s not found.'%elementClassName)
+            dprint('class %s not found.'%elementClassName)
             return False, False
 
         city = bpy.context.scene.city
@@ -121,28 +132,29 @@ class BlendedCities(bpy.types.PropertyGroup) :
         if isChild :
             otl.parent = otl_dad.name
             otl_dad.childsAdd(otl.name)
-            print('parented to %s'%(otl.parent))
+            dprint('parented to %s'%(otl.parent))
         else :
             new.build()
-        print('* element add done')
+        dprint('* element add done')
         return new, otl
+
 
     ## remove an existing element given an object or an element of any kind
     # will only let the outline object
     def elementRemove(self,object=False) :
-        print('** element Remove')
-        print(object,type(object))
+        dprint('** element Remove')
+        dprint(object,type(object))
         if object :
             blr, otl = self.elementGet(object)
             if blr :
-                print('removing..')
+                dprint('removing..')
                 # remove the outline, checks if there's childs/parent before
                 iblr = blr.index()
                 blrclass = blr.elementClass()
                 iotl = otl.index()
                 otlname = otl.name
                 parent = otl.parent
-                childs = otl.childsList()
+                childs = otl.childsGet()
                 for child in childs :
                     self.outlines[child].parent = parent
                 if parent != '' :
@@ -151,9 +163,9 @@ class BlendedCities(bpy.types.PropertyGroup) :
                         self.outlines[parent].childsAdd(child)
                     self.outlines[parent].asBuilder().build(True) # this will update the childs outlines
                 # remove the attached builder object
-                wipeOutObject(object)
+                blr.objectDelete()
                 # we keep main outlines, but not their childs
-                if parent != '' : wipeOutObject(otl.object())
+                if parent != '' : otl.objectDelete()
 
                 # remove elements from collections.
                 ielm  = otl.asElement().index()
@@ -162,18 +174,25 @@ class BlendedCities(bpy.types.PropertyGroup) :
                 ielm  = blr.asElement().index()
                 self.elements.remove(ielm)
                 blrclass.remove(iblr)
-        print('** element Remove done')
+        dprint('** element Remove done')
 
-
-    ## given an object or its name, returns a city element (in its class)
-    # @return elm, otl (the new element in its class, and its outline). false if does not exists
+    def objectsRemove(self,what='all',tag=False) :
+         for otl in self.outlines :
+            if otl.parent : continue
+            print(otl.asBuilder().name)
+            childsIter(otl,'    ')       
+        
+        
+        
+    ## given an object or its name, returns the builder and the outline
+    # @return [ elm, otl ] (the new element in its class, and its outline). [False,False] if does not exists
     def elementGet(self,ob) :
         # given an object or its name, returns a city element (in its class)
         if type(ob) == str :
             try : ob = bpy.data.objects[ob]
             except :
-                print('object with name %s not found'%ob)
-                return False
+                dprint('object with name %s not found'%ob)
+                return [None,None]
         pointer = str(ob.as_pointer())
         for elm in self.elements :
             if elm.pointer == pointer :
@@ -181,13 +200,19 @@ class BlendedCities(bpy.types.PropertyGroup) :
         return [False,False]
 
 
+    ## modal configuration of script events
     def modalConfig(self) :
         mdl = bpy.context.window_manager.modal
-        mdl.func = 'bpy.context.scene.city.modalBuilder(self,context,event)'
+        mdl.func = 'bpy.context.scene.city.modal(self,context,event)'
 
-    # modal. called from watchdog addon
-    def modalBuilder(self,self_mdl,context,event) :
-            print('modal')
+
+    ## the HUD function called from script events (TO DO)
+    def hud() :
+        pass
+
+    ## the modal function called from script events (TO DO)
+    def modal(self,self_mdl,context,event) :
+            dprint('modal')
             city = bpy.context.scene.city
             if bpy.context.mode == 'OBJECT' and \
             len(bpy.context.selected_objects) == 1 and \
@@ -196,12 +221,12 @@ class BlendedCities(bpy.types.PropertyGroup) :
                 if elm : elm.build(True)
             '''
                 if elm.className() == 'buildings' or elm.peer().className() == 'buildings' :
-                    print('rebuild')
+                    dprint('rebuild')
                     if elm.className() == 'buildings' :
                         blg = elm
                     else :
                         blg = elm.peer()
-                    print('rebuild')
+                    dprint('rebuild')
                     blg.build(True)
 
             if event.type in ['TAB','SPACE'] :
@@ -219,51 +244,84 @@ class BlendedCities(bpy.types.PropertyGroup) :
             elif event.type in ['ESC','LEFTMOUSE','RIGHTMOUSE'] :
                     self.go=False
                     self.go_once=False
-                    #print('modal paused.')
+                    #dprint('modal paused.')
                     #mdl.log = 'paused.'
                     #context.region.callback_remove(self._handle)
 
             if event.type == 'TIMER' and (self.go or self.go_once) :
                         #self_mdl.log = 'updating...'
 
-                        #print('event %s'%(event.type))
+                        #dprint('event %s'%(event.type))
                         elm = city.elementGet(bpy.context.active_object)
-                        #print('modal acting')
+                        #dprint('modal acting')
 
                         if elm.className() == 'buildings' or elm.peer().className() == 'buildings' :
                             if elm.className() == 'buildings' :
                                 blg = elm
                             else :
                                 blg = elm.peer()
-                            print('rebuild')
+                            dprint('rebuild')
                             blg.build(True)
             #bpy.ops.object.select_name(name=self.name)
                         self.go_once = False
                         #if self.go == False : mdl.log = 'paused.'
             '''
 
+
     ## clean everything, restore the defaults
     # configure also the modal (it won't if BC is enabled by default, for now must be started by hand with city.modalConfig() )
     def init(self) :
         scene = bpy.context.scene
         city = scene.city
+        # clean elements collections
         while len(city.elements) > 0 :
             city.elements.remove(0)
-        while len(city.builders.buildings) > 0 :
-            city.builders.buildings.remove(0)
         while len(city.outlines) > 0 :
             city.outlines.remove(0)
-        bpy.context.scene.city.modalConfig()
+        for buildclass in builderClass() :
+            while len(buildclass) > 0 :
+                buildclass.remove(0)
 
-        # scale
-        bpy.context.scene.unit_settings.system = 'METRIC'
+        # define default value
+        city.modalConfig()
+        scene.unit_settings.system = 'METRIC'
+
+
+    ## rebuild everything from the collections (TO COMPLETE)
+    # should support criterias filters etc like list should also
+    def build(self,what='all') :
+        dprint('\n** BUILD ALL\n')
+        #scene = bpy.context.scene
+        #city = scene.city
+        for buildclass in builderClass() :
+            for elm in buildclass :
+                dprint(elm.name)
+                elm.build()
+
+    ## list all or some collection, filters, etc.., show parented element
+    # should be able to generate a selection of elm in the ui,
+    # in a search panel (TO COMPLETE)
+    def list(self,what='all') :
         
+        print('buildings list :')
+        print('----------------')
+
+        def childsIter(otl,tab) :
+            elm = otl.Child()
+            while elm :
+                print('%s%s'%(tab,elm.asBuilder().name))
+                childsIter(elm,tab + '    ')
+                elm = elm.Next()
+
+        for otl in self.outlines :
+            if otl.parent : continue
+            print(otl.asBuilder().name)
+            childsIter(otl,'    ')
+
+
 # register_class() for BC_builders and builders classes are made before
 # the BlendedCities definition class_import
 # else every module is register here
-
-
-
 def register() :
     # operators
     pass
@@ -271,5 +329,5 @@ def register() :
 def unregister() :
     pass
 if __name__ == "__main__" :
-    print('B.C. wip')
+    dprint('B.C. wip')
     register()

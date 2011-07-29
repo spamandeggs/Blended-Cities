@@ -10,15 +10,6 @@ import mathutils
 from mathutils import *
 from blended_cities.utils.meshes_io import *
 
-# ########################################################
-# set of generic update functions used in builders classes
-# ########################################################
-
-#
-# this link to the build() method of the current class
-def updateBuild(self,context='') :
-    self.build(True)
-
 ##\brief the main city elements collection
 #
 # store any element of the city, including outlines. allows 'real' object / element lookups
@@ -106,6 +97,48 @@ class BC_elements(bpy.types.PropertyGroup) :
                 return ob
         else : return False
 
+    ## detach the object of the element
+    def objectDetach(self) :
+        self = self.asElement()
+        if self.pointer != '-1' :
+            ob = self.object()
+            if ob.name == self.name :
+                ob.name = ob.name.split('.')[0] + '_free.' + ob.name.split('.')[1]
+            ob.data.name = ob.name
+            ob.parent = None
+            self.pointer = '-1'
+
+    ## attach an object to an outline element
+    # @param object an object or its name
+    # @return True if the object has been attached
+    def objectAttach(self,object) :
+        city = bpy.context.scene.city
+        if type(object) == str :
+            try : object = bpy.data.objects[object]
+            except :
+                dprint('object named %s not found'%object)
+                return False
+        test = city.elementGet(object)
+        if  test == [False,False] :
+            elm = self.asOutline().asElement()
+            if elm.pointer != '-1' :
+                elm.objectDetach()
+            elm.pointer = str(object.as_pointer())
+            elm.asOutline().dataRead()
+            elm.asBuilder().build()
+            return True
+        else :
+            print('object %s already attached (%s)'%(object.name,test[0].name))
+        return False
+
+    ## Delete the object of the element
+    def objectDelete(self) :
+        elm = elm.asElement()
+        if elm.pointer != '-1' :
+            ob = elm.object()
+            wipeOutObject(ob)
+            elm.pointer = '-1'
+
     ## from an element, returns the object name
     def objectName(self) :
         ob = self.object()
@@ -113,11 +146,13 @@ class BC_elements(bpy.types.PropertyGroup) :
         else : return False
 
     ## change the object and the mesh names of the element object to its own name (if the object exists)
-    def objectNameSet(self) :
+    def objectNameSet(self,name=False) :
         ob = self.object()
+        if name == False : name = self.name
         if ob : 
-            ob.name = self.name
-            ob.data.name = self.name
+            ob.name = name
+            ob.data.name = name
+            return name
         else : return False
 
     ## name a new element in the element class.
@@ -139,11 +174,6 @@ class BC_elements(bpy.types.PropertyGroup) :
         else :
             return self.name
 
-    def isChild(self) :
-        return len(self.name.split('.')) > 2
-
-    def parent(self) :
-        pass
 
     ## selects the parent object of the current element
     # @param attached (default False) if True returns always the builder object and not the outline
@@ -156,13 +186,32 @@ class BC_elements(bpy.types.PropertyGroup) :
         if self.parent != '' :
             self = outlines[self.parent]
         self.select(attached)
-     
-    def selectChild(self,attached=False) :
+
+    ## returns the first child or None
+    def Child(self,attached=False) :
         outlines = bpy.context.scene.city.outlines
-        childs = self.childsList()
+        childs = self.childsGet()
         if len(childs) > 0 :
-            child = outlines[childs[0]]
-            child.select(attached)
+            if attached : outlines[childs[0]].peer()
+            return outlines[childs[0]]
+        return None
+
+    ## returns the next sibling
+    def Next(self,attached=False) :
+        outlines = bpy.context.scene.city.outlines
+        if self.asOutline().parent :
+            siblings = outlines[self.parent].childsGet()
+            if len(siblings) > 1 :
+                si = siblings.index(self.name)
+                try : sibling = outlines[siblings[si+1]]
+                except : return None
+                if attached : return sibling.peer()
+                else : return sibling
+        return None
+
+    def selectChild(self,attached=False) :
+        child = self.Child()
+        if child : child.select(attached)
 
     def selectNext(self,attached=False) :
         if self.className() == 'elements' : self = self.asBuilder()
@@ -171,7 +220,7 @@ class BC_elements(bpy.types.PropertyGroup) :
             attached = True
         outlines = bpy.context.scene.city.outlines
         if self.parent != '' :
-            siblings = outlines[self.parent].childsList()
+            siblings = outlines[self.parent].childsGet()
             if len(siblings) > 1 :
                 si = siblings.index(self.name)
                 sibling = outlines[siblings[(si+1)%len(siblings)]]
@@ -185,7 +234,7 @@ class BC_elements(bpy.types.PropertyGroup) :
             attached = True
         outlines = bpy.context.scene.city.outlines
         if self.parent != '' :
-            siblings = outlines[self.parent].childsList()
+            siblings = outlines[self.parent].childsGet()
             if len(siblings) > 1 :
                 si = siblings.index(self.name)
                 sibling = outlines[siblings[(si-1)%len(siblings)]]
@@ -206,7 +255,7 @@ class BC_elements(bpy.types.PropertyGroup) :
         self = self.asOutline()
         print('removing %s from %s : %s'%(childname,self.name,self.childs))
         if childname in self.childs :
-            childs = self.childsList()
+            childs = self.childsGet()
             del childs[childs.index(childname)]
             newchilds = ''
             for child in childs : newchilds += child+','
@@ -215,7 +264,7 @@ class BC_elements(bpy.types.PropertyGroup) :
 
     ## returns outlines parented to this one (its childs) and mentionned in otl.childs, but as a list and not a string
     # @return a list of string (outline names) or an empty list
-    def childsList(self) :
+    def childsGet(self) :
         self = self.asOutline()
         if self.childs == '' :
             return []
@@ -273,7 +322,7 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
     ## read the geometry of the outline object and sets its data (dataSet call)
     # @return False if object does not exists
     def dataRead(self) :
-        print('dataRead outline ob of %s'%self.name)
+        print('dataRead outline object of %s'%self.name)
         obsource=self.object()
         if obsource :
             # data extracted are in BU no meter so dataSet boolean is False
@@ -282,7 +331,9 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
             self.dataSet(mat,'matrix',False)
             return True
         else :
-            print('no object !')
+            print('no object ! regenerate')
+            self.dataWrite()
+            print('done regenerate')
             return False
         print('dataReaddone')
     ## write the geometry in the outline object from its data field (dataGet call)

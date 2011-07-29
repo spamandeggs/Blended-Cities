@@ -10,6 +10,7 @@ import mathutils
 from mathutils import *
 from blended_cities.core.class_main import *
 from blended_cities.utils.meshes_io import *
+from blended_cities.core.ui import *
 
 ## building builder class
 #
@@ -68,13 +69,11 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         mat_inter = 1
 
         if refreshData :
-            print('refresh data asked')
+            print('ask for data read')
             otl.dataRead()
         perimeter = otl.dataGet('perimeters')
-        mtx       = otl.dataGet('matrix')
         zlist = zcoords(perimeter)
-        #print('perim %s'%(perimeter))
-        print('max height %s'%max(zlist))
+        print('highest vert is %s'%max(zlist))
         
         verts = []
         faces = []

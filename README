@@ -2,6 +2,18 @@ Blended Cities for blender 2.5 series
 continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
+2011/07/29
+. element method elm.objectAttach() elm.objectDetach()
+. city method city.list() city.build(), cleaning code, operator names
+. added an example file about objects and elements
+. added info ('how to use it') in DOCUMENTATION
+
+2011/07/28
+. appended scale mecanism : class_main.py dataGet/Set
+and meshes_io buToMeters() and meters ToBu()
+(see CITY MAIN SCALE in DOCUMENTATION)
+. cleaned the buildings class (buildbox() now in build() )
+. retested element remove / add, misc debug
 
 2011/07/27
 . outline and builder are now parented. outline and outline childs too.

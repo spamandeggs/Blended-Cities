@@ -3,6 +3,7 @@ import mathutils
 from mathutils import *
 from blended_cities.core.class_main import *
 from blended_cities.utils.meshes_io import *
+from blended_cities.core.ui import *
 
 class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
     #name = bpy.props.StringProperty()

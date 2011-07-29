@@ -341,10 +341,11 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
 
     if name not in bpy.data.objects :
         ob = bpy.data.objects.new(name=name, object_data=mesh)
-        bpy.context.scene.objects.link(ob)
     else :
         ob = bpy.data.objects[name]
         ob.data = mesh
+    if  ob.name not in bpy.context.scene.objects.keys() :
+        bpy.context.scene.objects.link(ob)
     return ob
  
 
@@ -380,7 +381,7 @@ def zcoords(vertslists,offset=0) :
 def updateChildHeight(otl,height) :
     print('** update childs of %s : %s'%(otl.name,otl.childs ))
     city = bpy.context.scene.city
-    childs=otl.childsList()
+    childs=otl.childsGet()
     for childname in childs :
         print(' . %s'%childname)
         #verts, edges, edgesW , bounds = readMeshMap(childname,True,1)

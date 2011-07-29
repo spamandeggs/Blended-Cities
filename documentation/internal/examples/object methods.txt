@@ -1,0 +1,47 @@
+#examples :
+# lines below can be parsed directly in the console
+# after you created a building from an outline
+# use it for debug also :)
+
+# BEFORE TO TEST THIS, CREATE TWO PLANE
+# ON THE SECOND PLANE (plane.001), CREATE A BUILDING
+
+city = bpy.context.scene.city
+
+# from an object, retrieve the corresponding element
+obj = bpy.context.active_object
+elm, otl= city.elementGet(obj)
+
+objname = 'buildings.00000'
+bld, otl = city.elementGet(objname)
+
+# returns the internal name of the element :
+bld.name
+
+# return the name of the object attached to the element :
+bld.objectName()
+otl.objectName()
+
+# the outline object name as not been changed
+
+# change the name of the attached object :
+otl.objectNameSet('spam')
+bld.objectNameSet('egg')
+
+# retrieve the object of an element :
+ob = bld.object()
+ob.name = 'flying circus'
+
+# relation ship between elements and object remains
+bld.floorNumber = 20
+
+# initialise the name of the attached object to the element name :
+otl.objectNameSet()
+bld.objectNameSet()
+
+bld.floorNumber = 10
+
+# attach an outline element to another object
+otl.objectAttach('Plane')
+
+

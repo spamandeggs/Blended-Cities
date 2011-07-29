@@ -5,9 +5,12 @@ print('ui.py')
 import bpy
 from blended_cities.utils.meshes_io import *
 
-# ###################################################
-# COMMON OPERATORS
-# ###################################################
+# ###################
+# COMMON UI OPERATORS 
+# ###################
+# should call a xxx.method rateher than be clever. the least code in it
+# methods could return some value or False/None to obtain the {'CANCELLED'}
+# or {'FINISHED'} status
 
 ## this operator links the gui buttons to any city methods
 # example city.init() is called from here by the ui : ops.city.method(action = 'init')
@@ -22,6 +25,21 @@ class OP_BC_cityMethods(bpy.types.Operator) :
 
         if self.action == 'init' :
             city.init()
+            return {'FINISHED'}
+
+        elif self.action == 'build' :
+            bpy.context.scene.city.build()
+            return {'FINISHED'}
+
+        elif self.action == 'list' :
+            city.list()
+            return {'FINISHED'}
+
+        elif 'remove' in self.action :
+            args = self.action.split(' ')
+            items = args[1]
+            tag=True if len(args) == 3 else False
+            city.element(items,tag)
             return {'FINISHED'}
 
         elif len(self.action.split(' ')) == 2 :
@@ -113,19 +131,6 @@ class OP_BC_buildersMethods(bpy.types.Operator) :
         return {'FINISHED'}
 
 
-class OP_BC_buildinglist(bpy.types.Operator) :
-   
-    bl_idname = 'buildings.list'
-    bl_label = 'list building in console'
-    
-    def execute(self,context) :
-        print('buildings list :')
-        for bi,b in enumerate(bpy.context.scene.city.builders.buildings) :
-            if b.parent == '' :
-                print(' %s %s / %s'%(bi,b.name,b.attached)) 
-        return {'FINISHED'}
-
-
 class OP_BC_buildingWipe(bpy.types.Operator) :
    
     bl_idname = 'buildings.wipe'
@@ -152,23 +157,9 @@ class OP_BC_buildingWipe(bpy.types.Operator) :
         return {'FINISHED'}
 
 
-class OP_BC_buildingBuild(bpy.types.Operator) :
-   
-    bl_idname = 'buildings.build'
-    bl_label = 'rebuild all'
-    
-    removetag = bpy.props.BoolProperty()
-    
-    def execute(self,context) :
-        buildings = bpy.context.scene.city.builders.buildings
-        for b in buildings :
-            buildBox(b)
-        return {'FINISHED'}
-
-
-# ###################################################
-# COMMON UIs
-# ###################################################
+# ########################################################
+# set of generic update functions used in builders classes
+# ########################################################
 
 ## can be used by the update function of the panel properties of a builder
 #
@@ -178,27 +169,33 @@ class OP_BC_buildingBuild(bpy.types.Operator) :
 def updateBuild(self,context='') :
     self.build(True)
 
-## common ui elements
+# ###################################################
+# COMMON UIs PANEL
+# ###################################################
 
 ## can be called from panel a draw() function
 #
 # some functions that remove/recreate globally the objects of the city. (tests)
 def drawMainbuildingsTool(layout) :
+    scene = bpy.context.scene
 
     row = layout.row()
-    row.operator('city.method',text = 'Initialise').action = 'init' 
-
-    row = layout.row()
-    row.operator('buildings.list',text = 'List Building in console')
+    row.prop(scene.unit_settings,'scale_length')
     
     row = layout.row()
-    row.operator('buildings.wipe',text = 'Wipe buildings')      
+    row.operator('city.method',text = 'Rebuild All').action = 'build'    
 
     row = layout.row()
-    row.operator('buildings.wipe',text = 'Wipe Tags and buildings').removetag = True
+    row.operator('city.method',text = 'Initialise').action = 'init'
 
     row = layout.row()
-    row.operator('buildings.build',text = 'Rebuild tagged')     
+    row.operator('city.method',text = 'List Elements').action = 'list'
+    
+    row = layout.row()
+    row.operator('city.method',text = 'Remove objects').action = 'remove all'
+
+    row = layout.row()
+    row.operator('city.method',text = 'Remove obj. and tags').action = 'remove all tag'
 
 
 ## can be called from panel a draw() function
@@ -257,7 +254,9 @@ def pollBuilders(context, classname, obj_mode = 'OBJECT') :
     return False
 
 
+####################################################
 ## the main Blended Cities panel
+####################################################
 class BC_main_panel(bpy.types.Panel) :
     bl_label = 'Blended Cities'
     bl_space_type = 'VIEW_3D'
@@ -276,9 +275,9 @@ class BC_main_panel(bpy.types.Panel) :
 
         drawModal(layout)
 
-## the Outlines panel
-#
-# Dedicated to outlines functions (OBJECT MODE)
+####################################################
+## the main Blended Cities panel (OBJECT MODE)
+####################################################
 class BC_outlines_panel(bpy.types.Panel) :
     bl_label = 'Outlines'
     bl_space_type = 'VIEW_3D'

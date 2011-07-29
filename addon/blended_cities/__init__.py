@@ -48,8 +48,6 @@ else :
 def register() :
         #operators :
         bpy.utils.register_class(OP_BC_cityMethods)
-        bpy.utils.register_class(OP_BC_buildinglist)
-        bpy.utils.register_class(OP_BC_buildingBuild)
         bpy.utils.register_class(OP_BC_buildingWipe)
         bpy.utils.register_class(OP_BC_buildersMethods)
         # ui
@@ -88,8 +86,6 @@ def unregister() :
 
     # operators
     bpy.utils.unregister_class(OP_BC_cityMethods)
-    bpy.utils.unregister_class(OP_BC_buildinglist)
-    bpy.utils.unregister_class(OP_BC_buildingBuild)
     bpy.utils.unregister_class(OP_BC_buildingWipe)
     bpy.utils.unregister_class(OP_BC_buildersMethods)
 
