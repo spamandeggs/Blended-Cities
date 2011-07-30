@@ -31,7 +31,6 @@ from mathutils import *
 #from blended_cities.core.ui import *
 #from blended_cities.core.class_import import *
 from blended_cities.core.class_main import *
-from blended_cities import BC_builders
 from blended_cities.utils.meshes_io import *
 
 
@@ -61,7 +60,7 @@ def builderClass() :
 class BlendedCities(bpy.types.PropertyGroup) :
     elements = bpy.props.CollectionProperty(type=BC_elements)
     outlines = bpy.props.CollectionProperty(type=BC_outlines)
-    builders = bpy.props.PointerProperty(type=BC_builders)
+    builders = BC_builders
     debuglevel = bpy.props.IntProperty(default=1)
     builders_info = {} # info about builder authoring, should be a collection too. usage, could use bl_info..
 
@@ -396,6 +395,7 @@ class BlendedCities(bpy.types.PropertyGroup) :
             print('%s : %s'%(buildname,len(buildclass)))
             count += len(buildclass)
         if count != total : print("I've got a problem... %s / %s"%(count,total))
+
 
 # register_class() for BC_builders and builders classes are made before
 # the BlendedCities definition class_import

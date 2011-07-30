@@ -21,6 +21,10 @@ from blended_cities.core.ui import *
 #
 #
 class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
+    bc_label = 'Building'
+    bc_description = 'a simple building with multiple floors'
+    bc_collection = 'buildings'
+
     #name = bpy.props.StringProperty()
     attached = bpy.props.StringProperty()   # the perimeter object
     inherit = bpy.props.BoolProperty(default=False,update=updateBuild)
@@ -139,13 +143,69 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         return self.heights(offset)[-1]
 
 
-def register() :
-    bpy.utils.register_class(BC_buildings)
+## building builder user interface class
+class BC_buildings_panel(bpy.types.Panel) :
+    bl_label = 'Buildings'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_idname = 'buildings'
 
 
-def unregister() :
-    bpy.utils.unregister_class(BC_buildings)
+    @classmethod
+    def poll(self,context) :
+        return pollBuilders(context,'buildings')
 
-    
-#if __name__ == '__main__' :
-#    register()
+
+    def draw_header(self, context):
+        drawHeader(self,'builders')
+
+
+    def draw(self, context):
+        city = bpy.context.scene.city
+        scene  = bpy.context.scene
+
+        # either the building or its outline is selected : lookup
+        building, otl = city.elementGet(bpy.context.active_object)
+
+        layout  = self.layout
+        layout.alignment  = 'CENTER'
+
+        drawElementSelector(layout,otl)
+
+        row = layout.row()
+        row.label(text = 'Name : %s / %s'%(building.objectName(),building.name))
+
+        row = layout.row()
+        row.label(text = 'Floor Number:')
+        row.prop(building,'floorNumber')
+
+        row = layout.row()
+        row.label(text = 'Build First Floor :')
+        row.prop(building,'firstFloor')
+
+        row = layout.row()
+        row.label(text = 'Inherit Values :')
+        row.prop(building,'inherit')
+
+        if building.inherit : ena = False
+        else : ena = True
+
+        row = layout.row()
+        row.active = ena
+        row.label(text = 'Floor Height :')
+        row.prop(building,'floorHeight')
+
+        row = layout.row()
+        row.active = building.firstFloor
+        row.label(text = '1st Floor Height :')
+        row.prop(building,'firstFloorHeight')
+
+        row = layout.row()
+        row.active = ena
+        row.label(text = 'Inter Floor Height :')
+        row.prop(building,'interFloorHeight')
+
+        row = layout.row()
+        row.active = ena
+        row.label(text = 'Roof Height :')
+        row.prop(building,'roofHeight')

@@ -434,3 +434,11 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
         print(len(verts),len(edges))
         ob = objectBuild(self,verts,edges)
         print('dataWrite done')
+
+
+##\brief the builders registered
+#
+# By default this is empty and will be populated with builder collections
+
+class BC_builders(bpy.types.PropertyGroup):
+    builders_list = bpy.props.StringProperty()

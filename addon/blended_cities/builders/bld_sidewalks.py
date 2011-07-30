@@ -6,6 +6,10 @@ from blended_cities.utils.meshes_io import *
 from blended_cities.core.ui import *
 
 class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
+    bc_label = 'Sidewalk'
+    bc_description = 'a simple sidewalk'
+    bc_collection = 'sidewalks'
+
     #name = bpy.props.StringProperty()
     attached = bpy.props.StringProperty()   # the perimeter object
     height = bpy.props.FloatProperty(
@@ -54,4 +58,41 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
 
 
         ob = objectBuild(self, verts, [], faces, [], [])
-    
+
+
+# a city element panel
+class BC_sidewalks_panel(bpy.types.Panel) :
+    bl_label = 'Sidewalks'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_idname = 'sidewalks'
+
+    @classmethod
+    def poll(self,context) :
+        return pollBuilders(context,'sidewalks')
+
+
+    def draw_header(self, context):
+        drawHeader(self,'builders')
+
+
+    def draw(self, context):
+        city = bpy.context.scene.city
+        modal = bpy.context.window_manager.modal
+        scene  = bpy.context.scene
+        ob = bpy.context.active_object
+        # either the building or its outline is selected : lookup
+        sdw, otl = city.elementGet(ob)
+
+        layout  = self.layout
+        layout.alignment  = 'CENTER'
+
+        row = layout.row()
+        row.label(text = 'Name : %s / %s'%(sdw.objectName(),sdw.name))
+
+        row = layout.row()
+        row.label(text = 'Sidewalk Height:')
+        row.prop(sdw,'height')
+
+
+        layout.separator()
