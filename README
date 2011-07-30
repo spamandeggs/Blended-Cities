@@ -2,11 +2,22 @@ Blended Cities for blender 2.5 series
 continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
+2011/07/30
+. elm.remove(True) remove an element from collections, rebuild relationship. boolean True to remove the object too
+. elm.stack('buildername') build a new 'buildername' above this. with no args, add the same builder than the parent
+. elm.child() added child index argument elm.child(2) returns the third child
+. city.elementGet() with no args returns now bld and otl of the active object
+. consolidated city methods (list, add, stack, remove)
+. add, stack and remove work now with several selected objects in a row
+. added elm.Previous() elm.Parent()
+. updated addon
+
 2011/07/29
 . element method elm.objectAttach() elm.objectDetach()
 . city method city.list() city.build(), cleaning code, operator names
 . added an example file about objects and elements
 . added info ('how to use it') in DOCUMENTATION
+* Merge branch 'local-coords' by ondrej : local point of view, looks better since childs parts updates accordingly to parent transformations
 
 2011/07/28
 . appended scale mecanism : class_main.py dataGet/Set
@@ -56,3 +67,6 @@ can be retrieved from github too but destined to collaborative updates.
 
 2011/07/24
 . turned it as a module. first multifile split and organisation.
+
+2011 june-july
+. first test using blender 2.5, bpy classes first generated thing with it :)
