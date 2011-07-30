@@ -76,10 +76,6 @@ class BC_buildings_panel(bpy.types.Panel) :
         row.label(text = 'Roof Height :')
         row.prop(building,'roofHeight')
 
-        row = layout.row()
-        row.operator('city_builders.method',text='Add a part above this').action='add above'
-
-
 def register() :
     bpy.utils.register_class(BC_buildings_panel)
 

@@ -22,42 +22,45 @@ class OP_BC_cityMethods(bpy.types.Operator) :
 
     def execute(self, context) :
         city = bpy.context.scene.city
+        act = objs = tags = elms = ''
+        args = self.action.split(' ')
+        if len(args) == 1 : act = args[0]
+        elif len(args) == 2 : act, objs = args
+        elif len(args) == 3 : act, objs, tags = args
+        else : act, objs, tags, elms = args
 
-        if self.action == 'init' :
+        print('\nact : %s / objs : %s / tags : %s/ elms : %s\n'%(act,objs,tags,elms))
+
+        if act == 'init' :
             city.init()
             return {'FINISHED'}
 
-        elif self.action == 'build' :
-            bpy.context.scene.city.build()
+        elif act == 'build' :
+            objs = city.build(objs,tags)
+            print('builded %s objects'%(len(objs)))
             return {'FINISHED'}
 
-        elif self.action == 'list' :
-            city.list()
+        elif act == 'list' :
+            city.list(objs,tags)
             return {'FINISHED'}
 
-        elif 'remove' in self.action :
-            args = self.action.split(' ')
-            items = args[1]
-            tag=True if len(args) == 3 else False
-            city.element(items,tag)
+        elif act == 'stack' :
+            new_objs = city.elementStack(objs,tags)
+            print('stacked %s new %s'%(len(new_objs),tags))
+            # list & select them
             return {'FINISHED'}
 
-        elif len(self.action.split(' ')) == 2 :
-            outlineOb = bpy.context.active_object
-            act,tag = self.action.split(' ')
+        elif act == 'add' :
+            new_objs = city.elementAdd(objs,tags)
+            print('created %s new %s'%(len(new_objs),tags))
+            # list & select them
+            return {'FINISHED'}
 
-            if act == 'add' :
-                print(tag,outlineOb.name)
-                new, otl = city.elementAdd(tag,outlineOb)
-                new.select()
-                print('attached %s to outline %s (ob current name : %s)'%(new.name,otl.name,new.objectName() ))
-                return {'FINISHED'}
-
-            if act == 'remove' :
-                print(tag,outlineOb.name)
-                city.elementRemove(object=tag)
-                print('denied %s. you never existed.'%(tag))
-                return {'FINISHED'} 
+        elif act == 'remove' :
+            del_objs = city.elementRemove(objs,tags,eval(elms))
+            print('removed %s objects from %s'%(len(del_objs),tags))
+            # list them
+            return {'FINISHED'} 
 
         else : return {'CANCELLED'}
 
@@ -91,45 +94,6 @@ class OP_BC_Selector(bpy.types.Operator) :
 # 'add above' allows to stack a new outline and a new member of the current class above an existing element.
 # it takes the higher vert of the parent element and construct from here a new outline, based on the data of his parent.
 # its cares about elements relationships and parenting of the objects
-class OP_BC_buildersMethods(bpy.types.Operator) :
-    
-    bl_idname = 'city_builders.method'
-    bl_label = 'builders method'
-    
-    action = bpy.props.StringProperty()
-    
-    def execute(self, context) :
-        city = bpy.context.scene.city
-        blg_parent, otl_parent = city.elementGet(bpy.context.active_object)
-
-        if self.action == 'add above' :
-            print('add above %s'%blg_parent.name)
-            blg_child, otl_child = city.elementAdd(blg_parent)
-            print(otl_child.name)
-            print(otl_child.data)
- 
-            data = otl_child.dataGet('perimeters')
-            z = max(zcoords(data))
-            z += blg_parent.height()
-            print('height %s'%z)
-            for perimeter in data :
-                for vert in perimeter :
-                    vert[2] = z
-            otl_child.dataSet(data)
-            otl_child.dataWrite()
-            print('changed height.')
-
-            blg_child.inherit = True
-            blg_child.build()
-            otl_child.object().parent = otl_parent.object()
-            #otl_child.object().matrix_local = Matrix()
-            blg_child.object().parent = otl_child.object()
-            #blg_child.object().matrix_local = Matrix()
-            blg_child.select()
-
-            
-        return {'FINISHED'}
-
 
 class OP_BC_buildingWipe(bpy.types.Operator) :
    
@@ -172,31 +136,6 @@ def updateBuild(self,context='') :
 # ###################################################
 # COMMON UIs PANEL
 # ###################################################
-
-## can be called from panel a draw() function
-#
-# some functions that remove/recreate globally the objects of the city. (tests)
-def drawMainbuildingsTool(layout) :
-    scene = bpy.context.scene
-
-    row = layout.row()
-    row.prop(scene.unit_settings,'scale_length')
-    
-    row = layout.row()
-    row.operator('city.method',text = 'Rebuild All').action = 'build'    
-
-    row = layout.row()
-    row.operator('city.method',text = 'Initialise').action = 'init'
-
-    row = layout.row()
-    row.operator('city.method',text = 'List Elements').action = 'list'
-    
-    row = layout.row()
-    row.operator('city.method',text = 'Remove objects').action = 'remove all'
-
-    row = layout.row()
-    row.operator('city.method',text = 'Remove obj. and tags').action = 'remove all tag'
-
 
 ## can be called from panel a draw() function
 #
@@ -253,6 +192,38 @@ def pollBuilders(context, classname, obj_mode = 'OBJECT') :
                 return True
     return False
 
+#
+# some functions that remove/recreate globally the objects of the city. (tests)
+def drawMainbuildingsTool(layout) :
+    scene = bpy.context.scene
+
+    row = layout.row()
+    row.prop(scene.unit_settings,'scale_length')
+    
+    row = layout.row()
+    row.operator('city.method',text = 'Rebuild All').action = 'build all'    
+
+    row = layout.row()
+    row.operator('city.method',text = 'Initialise').action = 'init'
+
+    row = layout.row()
+    row.operator('city.method',text = 'List Elements').action = 'list all'
+    
+    row = layout.row()
+    row.operator('city.method',text = 'Remove objects').action = 'remove all all False'
+
+    row = layout.row()
+    row.operator('city.method',text = 'Remove obj. and tags').action = 'remove all all True'
+
+def drawOutlinesTools(layout) :
+    wm = bpy.context.window_manager
+
+    row = layout.row()
+    row.operator('city.method',text = 'Stack a new element').action='stack selected %s'%wm.city_builders_dropdown
+
+    row = layout.row()
+    row.operator('city.method',text = 'Remove').action='remove selected all True'
+
 
 ####################################################
 ## the main Blended Cities panel
@@ -288,8 +259,7 @@ class BC_outlines_panel(bpy.types.Panel) :
     def poll(self,context) :
         city = bpy.context.scene.city
         if bpy.context.mode == 'OBJECT' and \
-        len(bpy.context.selected_objects) == 1 and \
-        type(bpy.context.active_object.data) == bpy.types.Mesh :
+        len(bpy.context.selected_objects) >= 1 :
             return True
         return False
 
@@ -310,25 +280,23 @@ class BC_outlines_panel(bpy.types.Panel) :
         # is already an element
         if elm :
             row = layout.row()
-            row.label('%s is in the %s collection'%(ob.name,elm.className()))
+            row.label('%s as %s'%(ob.name,elm.className()))
             row = layout.row()
             row.label('known as %s'%(elm.name))
-            #elm.className() elm.name() ob
+
+            drawOutlinesTools(layout)
+            
             row = layout.row()
-            row.label('Define Selected as :')
+            row.label('Redefine Selected as :')
 
         # add new element to create from the selected outline
         # or an existing one to change
         else :
             row = layout.row()
-            row.label('Redefine Selected as :')
+            row.label('Define Selected as :')
         row = layout.row()
         row.prop(wm,'city_builders_dropdown',text='')
-        row.operator('city.method',text = '',icon='FILE_TICK').action='add %s'%wm.city_builders_dropdown
-
-        row = layout.row()
-        row.operator('city.method',text = 'remove').action='remove %s'%ob.name
-
+        row.operator('city.method',text = '',icon='FILE_TICK').action='add selected %s'%wm.city_builders_dropdown
 
 def register() :
     bpy.utils.register_class(OP_BC_Selector)

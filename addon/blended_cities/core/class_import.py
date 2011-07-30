@@ -38,6 +38,10 @@ def buildersRegister() :
         builders_class += '    %s = bpy.props.CollectionProperty(type=%s)\n'%(cl[3:],cl)
 
     builders_class +='    builders_list = bpy.props.StringProperty()'
+    default_height = ''
+    default_height += '    def height(self,offset=0) :'
+    default_height += '        return 10'
+
     print(builders_class)
     exec(builders_class,globals())
     

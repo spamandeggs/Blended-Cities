@@ -61,7 +61,7 @@ def metersToBu(vertslists) :
 def outlineRead(obsource) :
             
             mat=Matrix(obsource.matrix_local)
-
+            #mat=Matrix(obsource.matrix_world)
             if len(obsource.modifiers) :
                 sce = bpy.context.scene
                 source = obsource.to_mesh(sce, True, 'PREVIEW')
@@ -126,6 +126,8 @@ def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
 
     obsource=bpy.data.objects[objectSourceName]
     mat=obsource.matrix_local
+    #mat=obsource.matrix_world
+
     #scaleX, scaleY, scaleZ = obsource.scale
     #rmat=mat.rotationPart().resize4x4()
     #if atLocation :
@@ -262,6 +264,15 @@ def wipeOutData(data) :
         print('%s has %s user(s) !'%(data.name,data.users))
 
 
+## lock or unlock an object matrix
+# @param ob the object to lock/unlock
+# @param state True to lock, False to unlock
+def objectFreedom(ob,state) :
+    for i in range(3) :
+        ob.lock_rotation[i] = state
+        ob.lock_location[i] = state
+        ob.lock_scale[i] = state
+
 
 def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
     print('build element %s (%s)'%(elm,elm.className()))
@@ -278,9 +289,11 @@ def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
         if elm.parent :
             ob.parent = city.outlines[elm.parent].object()
     else :
+        objectFreedom(ob,False)
         otl = elm.asOutline()
         ob.parent = otl.object()
-    #ob.matrix_local = Matrix()
+    #ob.matrix_local = Matrix() # not used
+    #ob.matrix_world = Matrix() # world
     
     return ob
 

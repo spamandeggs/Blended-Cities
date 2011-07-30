@@ -48,8 +48,6 @@ else :
 def register() :
         #operators :
         bpy.utils.register_class(OP_BC_cityMethods)
-        bpy.utils.register_class(OP_BC_buildingWipe)
-        bpy.utils.register_class(OP_BC_buildersMethods)
         # ui
         bpy.utils.register_class(OP_BC_Selector)
         bpy.utils.register_class(BC_main_panel)
@@ -86,8 +84,6 @@ def unregister() :
 
     # operators
     bpy.utils.unregister_class(OP_BC_cityMethods)
-    bpy.utils.unregister_class(OP_BC_buildingWipe)
-    bpy.utils.unregister_class(OP_BC_buildersMethods)
 
     # triggers imp.reload() when usepref is on focus
     #    bpy.types.USERPREF_PT_addons._addons_fake_modules['blended_cities'].__time__ = 0
