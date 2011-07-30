@@ -128,8 +128,8 @@ class BC_elements(bpy.types.PropertyGroup) :
         return False
 
 
-    ## Delete the object of the element
-    def objectDelete(self) :
+    ## Delete the object of the element if built
+    def objectRemove(self) :
         self = self.asElement()
         if self.pointer != '-1' :
             ob = self.object()
@@ -192,14 +192,16 @@ class BC_elements(bpy.types.PropertyGroup) :
 
 
     ## returns the first child or None
+    # @param id 0 (default) the child index -1 for last. id > len(childs) error free : returns last child
     # @param attached False (default) returns the outline parent. True returns the builder attached
     # @return the element or None
-    def Child(self,attached=False) :
+    def Child(self,id=0,attached=False) :
         outlines = bpy.context.scene.city.outlines
         childs = self.childsGet()
         if len(childs) > 0 :
-            if attached : return outlines[childs[0]].peer()
-            return outlines[childs[0]]
+            if id + 1 > len(childs) : id = -1
+            if attached : return outlines[childs[id]].peer()
+            return outlines[childs[id]]
         return None
 
 
@@ -220,7 +222,7 @@ class BC_elements(bpy.types.PropertyGroup) :
     def Next(self,attached=False) :
         outlines = bpy.context.scene.city.outlines
         if self.asOutline().parent :
-            siblings = outlines[self.parent].childsGet()
+            siblings = self.Parent().childsGet()
             if len(siblings) > 1 :
                 si = siblings.index(self.name)
                 try : sibling = outlines[siblings[si+1]]
@@ -310,7 +312,7 @@ class BC_elements(bpy.types.PropertyGroup) :
                 sibling.select(attached)
 
 
-    ## add a child outline to this outline. (actually done by outlines)
+    ## add a child outline reference to this outline.
     # @param childname the outline name (string)
     def childsAdd(self,childname) :
         self = self.asOutline()
@@ -320,7 +322,7 @@ class BC_elements(bpy.types.PropertyGroup) :
             self.childs += ',%s'%childname
 
 
-    ## delete a child outline of this outline. (actually done by outlines)
+    ## delete a child outline reference of this outline.
     # @param childname the outline name (string)
     def childsRemove(self,childname) :
         self = self.asOutline()
@@ -343,7 +345,67 @@ class BC_elements(bpy.types.PropertyGroup) :
         else :
             return self.childs.split(',')
 
+    ## remove the element and its generated object
+    # cares about relationship
+    # @param del_object (default True) delete the attached object
+    def remove(self,del_object=True) :
+        city = bpy.context.scene.city
+        otl = self.asOutline()
+        bld = self.asBuilder()
+        if del_object : bld.objectRemove()
+        # rebuild relationship
+        parent = otl.parent
+        childs = otl.childsGet()
+        for child in childs :
+            city.outlines[child].parent = parent
+        if parent != '' :
+            otl.Parent().childsRemove(otl.name)
+            for child in childs :
+                otl.Parent().childsAdd(child)
+            otl.Parent().asBuilder().build(True) # this to update the childs
 
+        # remove elements from collections.
+        iotl  = otl.index()
+        ielm  = otl.asElement().index()
+        city.elements.remove(ielm)
+        city.outlines.remove(iotl)
+
+        ibld = bld.index()
+        ielm  = bld.asElement().index()
+        city.elements.remove(ielm)
+        bldclass = bld.elementClass()
+        bldclass.remove(ibld)
+
+
+    ## stack an element above this one
+    # @param builder (default 'same') the builderclass name of the new element. if not given, stack the same builder than the current element.
+    def stack(self,builder='same') :
+        city = bpy.context.scene.city
+        otl_parent = self.asOutline()
+        bld_parent = self.asBuilder()
+        if builder == 'same' : builder = bld_parent.className()
+        [ [bld_child, otl_child] ] = city.elementAdd(False,builder,False)
+        otl_child.parent = otl_parent.name
+        otl_child.data = otl_parent.data
+        otl_parent.childsAdd(otl_child.name)
+
+        data = otl_child.dataGet('perimeters')
+        z = max(zcoords(data))
+        z += bld_parent.height()
+
+        for perimeter in data :
+            for vert in perimeter :
+                vert[2] = z
+
+        otl_child.dataSet(data)
+        otl_child.dataWrite()
+
+        bld_child.inherit = True
+        bld_child.build()
+        otl_child.object().parent = otl_parent.object()
+        bld_child.object().parent = otl_child.object()
+        return bld_child, otl_child
+    
 ##\brief the outlines collection
 #
 # this collection stores retionship between elements, and the geometry data of the outline. an outline is always attached to a builder element, and reciproquely.
