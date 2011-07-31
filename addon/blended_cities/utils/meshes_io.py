@@ -10,6 +10,15 @@ import collections
 
 from blended_cities.core.class_main import *
 
+## like tesselate but with an optional index offset giving the first vert index
+# @param list of vertices. vertices are in Vector format.
+# @offset index of the first vertex
+# @return list of faces
+def fill(vertlist,offset=0) :
+    faces = geometry.tesselate_polygon([vertlist])
+    for i,f in enumerate(faces) : faces[i] = ( f[0] + offset, f[1] + offset, f[2] + offset )
+    return faces
+
 ## check if there's nested lists in a list. used by functions that need
 # list(s) of vertices as input
 # returns the given list always nested,

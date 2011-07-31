@@ -68,9 +68,10 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         otl = self.peer()
         print('** build() %s (outline %s)'%(self.name,otl.name))
 
-        matslots = ['floor','inter'] 
+        matslots = ['floor','inter','roof'] 
         mat_floor = 0
         mat_inter = 1
+        mat_roof = 2
 
         if refreshData :
             print('ask for data read')
@@ -106,6 +107,11 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
                     faces.extend( facesLoop(fof,fpf) )
                     mat_id = zi%2
                     mats.extend( mat_id for i in range(fpf) )
+                # else fills the roof
+                else :
+                    roof = fill(verts[-fpf:],fof)
+                    mats.extend( mat_roof for i in range(len(roof)) )
+                    faces.extend( roof )
                 fof += fpf
 
         ob = objectBuild(self, verts, [], faces, matslots, mats)
@@ -118,10 +124,10 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         city = bpy.context.scene.city
         this = self
         while this.inherit == True :
-            print(this.name,this.inherit)
             otl = this.Parent(True)
+            print(this.name,this.inherit,otl.name)
             if otl.className() != this.className() : this.inherit = False 
-            else : this = otl.peer()
+            else : this = otl
         zs = [] # list of z coords of floors and ceilings
         for i in range( self.floorNumber ) :
             if i == 0 :
