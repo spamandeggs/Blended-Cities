@@ -12,7 +12,7 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
 
     #name = bpy.props.StringProperty()
     attached = bpy.props.StringProperty()   # the perimeter object
-    height = bpy.props.FloatProperty(
+    blockheight = bpy.props.FloatProperty(
         default = 0.2,
         min=0.1,
         max=0.4,
@@ -40,7 +40,7 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
         mats  = []
 
         fof = 0
-        z = self.height
+        z = self.blockheight
         for perimeter in perimeters :
             fpf = len(perimeter)
 
@@ -58,7 +58,9 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
 
 
         ob = objectBuild(self, verts, [], faces, [], [])
-
+ 
+    def height(self,offset=0) :
+        return self.blockheight
 
 # a city element panel
 class BC_sidewalks_panel(bpy.types.Panel) :
@@ -92,7 +94,7 @@ class BC_sidewalks_panel(bpy.types.Panel) :
 
         row = layout.row()
         row.label(text = 'Sidewalk Height:')
-        row.prop(sdw,'height')
+        row.prop(sdw,'blockheight')
 
 
         layout.separator()

@@ -2,6 +2,13 @@ Blended Cities for blender 2.5 series
 continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
+2011/07/31
+* a better class_import by der_On push on master branch
+. class_import debug by littleneo. bugs were in main.py and register_builder().
+inheritance thing was not the reason in fact, it's almost der_On code
+. added sys module cleaning (restart unnecessary while modding addon)
+. added a quick patch for sidewalk stacking and building inheritance
+
 2011/07/30
 . elm.remove(True) remove an element from collections, rebuild relationship. boolean True to remove the object too
 . elm.stack('buildername') build a new 'buildername' above this. with no args, add the same builder than the parent
@@ -17,7 +24,7 @@ http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introductio
 . city method city.list() city.build(), cleaning code, operator names
 . added an example file about objects and elements
 . added info ('how to use it') in DOCUMENTATION
-* Merge branch 'local-coords' by ondrej : local point of view, looks better since childs parts updates accordingly to parent transformations
+* Merge branch 'local-coords' by der_On : local point of view, looks better since childs parts updates accordingly to parent transformations
 
 2011/07/28
 . appended scale mecanism : class_main.py dataGet/Set

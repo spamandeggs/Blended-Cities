@@ -119,9 +119,9 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         this = self
         while this.inherit == True :
             print(this.name,this.inherit)
-            otl = this.peer()
-            otl = city.outlines[otl.parent]
-            this = otl.peer()
+            otl = this.Parent(True)
+            if otl.className() != this.className() : this.inherit = False 
+            else : this = otl.peer()
         zs = [] # list of z coords of floors and ceilings
         for i in range( self.floorNumber ) :
             if i == 0 :

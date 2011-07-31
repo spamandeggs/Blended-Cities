@@ -210,6 +210,7 @@ class BC_elements(bpy.types.PropertyGroup) :
     # @return the element or None
     def Parent(self,attached=False) :
         outlines = bpy.context.scene.city.outlines
+        self = self.asOutline()
         if self.parent :
             if attached : return outlines[self.parent].peer()
             return outlines[self.parent]
@@ -501,6 +502,7 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
 ##\brief the builders registered
 #
 # By default this is empty and will be populated with builder collections
-
 class BC_builders(bpy.types.PropertyGroup):
     builders_list = bpy.props.StringProperty()
+# for reference
+#BC_builders = type("BC_builders", (bpy.types.PropertyGroup, ), {})

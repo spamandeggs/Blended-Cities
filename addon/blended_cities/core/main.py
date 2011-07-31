@@ -60,7 +60,7 @@ def builderClass() :
 class BlendedCities(bpy.types.PropertyGroup) :
     elements = bpy.props.CollectionProperty(type=BC_elements)
     outlines = bpy.props.CollectionProperty(type=BC_outlines)
-    builders = BC_builders
+    #builders = BC_builders
     debuglevel = bpy.props.IntProperty(default=1)
     builders_info = {} # info about builder authoring, should be a collection too. usage, could use bl_info..
 
