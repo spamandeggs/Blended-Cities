@@ -27,7 +27,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="../../_gui_logo_oce64x64.png"/></td>
   <td style="padding-left: 0.5em;">
-   <div id="projectname">Blended Cities&#160;<span id="projectnumber">0.6</span></div>
+   <div id="projectname">Blended Cities&#160;<span id="projectnumber">0.6alpha</span></div>
   </td>
  </tr>
  </tbody>
@@ -98,8 +98,8 @@ Inheritance diagram for BC_elements:</div>
  <div class="center">
   <img src="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.png" usemap="#BC_elements_map" alt=""/>
   <map id="BC_elements_map" name="BC_elements_map">
-<area href="../../d7/d9d/classblended__cities_1_1builders_1_1buildings__class_1_1_b_c__buildings.html" title="building builder class" alt="BC_buildings" shape="rect" coords="0,56,90,80"/>
-<area href="../../d1/dbe/classblended__cities_1_1builders_1_1sidewalks__class_1_1_b_c__sidewalks.html" alt="BC_sidewalks" shape="rect" coords="100,56,190,80"/>
+<area href="../../de/d34/classblended__cities_1_1builders_1_1bld__buildings_1_1_b_c__buildings.html" title="building builder class" alt="BC_buildings" shape="rect" coords="0,56,90,80"/>
+<area href="../../d1/d19/classblended__cities_1_1builders_1_1bld__sidewalks_1_1_b_c__sidewalks.html" alt="BC_sidewalks" shape="rect" coords="100,56,190,80"/>
 <area href="../../de/d90/classblended__cities_1_1core_1_1class__main_1_1_b_c__outlines.html" title="the outlines collection" alt="BC_outlines" shape="rect" coords="200,56,290,80"/>
 </map>
  </div></div>
@@ -122,10 +122,14 @@ Public Member Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the class of the element itself.  <a href="#a4b20d28d727eb087c29fd4dd5ca99420"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a5fe20f1a95f3174b49f8e1419c9a969f">peer</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the outline if the element is a builder or an Element, returns the builder if the element is an outline  <a href="#a5fe20f1a95f3174b49f8e1419c9a969f"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a4cca98f89acec4a1be14e19ea07a401a">select</a></td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">from an element, returns and select the object  <a href="#a4cca98f89acec4a1be14e19ea07a401a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a1f703da4e6b96e334ee64c304efa30f0">object</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">from an element, returns the object  <a href="#a1f703da4e6b96e334ee64c304efa30f0"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#ab19f7bbb0f5c0a4779431ecf8e973379">objectDetach</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">detach the object of the element  <a href="#ab19f7bbb0f5c0a4779431ecf8e973379"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#addc6a1c14bd370f75e161cf6c39941d4">objectAttach</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">attach an object to an outline element  <a href="#addc6a1c14bd370f75e161cf6c39941d4"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a3d1acb1c99d8312122e6a9c594361aa6">objectRemove</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Delete the object of the element if built.  <a href="#a3d1acb1c99d8312122e6a9c594361aa6"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a944b7ff209f7ade6bf9df87dd3bd94e7">objectName</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">from an element, returns the object name  <a href="#a944b7ff209f7ade6bf9df87dd3bd94e7"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#ab11db7ed5d78c2721b5510c6f362b44f">objectNameSet</a></td></tr>
@@ -134,21 +138,37 @@ Public Member Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">name a new element in the element class.  <a href="#afeab943236cb4a8c61d6a0f496fb9c6e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a474c47e230357dc77b2bfda5ff1e6505">nameMain</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the name of the root element in a family of element not sure about this one : should really the name of child elements have two numeric fields ? internally almost useless.  <a href="#a474c47e230357dc77b2bfda5ff1e6505"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#ab979134847503bb09d60715ac666c114">isChild</a></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a80613e78870d533163dd781585db586f">parent</a></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#ab389d566aafa0a30ed7ed079f433b7b3">Child</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">rename an outline, rewrite relationships, update element not sure that's a good idea.  <a href="#ab389d566aafa0a30ed7ed079f433b7b3"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#ab684b508fd044cecc2947a86d92a070e">Parent</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the parent element  <a href="#ab684b508fd044cecc2947a86d92a070e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a759576c12ddec28b93d1ff1262926d1d">Next</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the next sibling  <a href="#a759576c12ddec28b93d1ff1262926d1d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#aea41fc1aec1569403c1beadd879ccdb1">Previous</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the previous sibling  <a href="#aea41fc1aec1569403c1beadd879ccdb1"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a4cca98f89acec4a1be14e19ea07a401a">select</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">from an element, returns and select the object  <a href="#a4cca98f89acec4a1be14e19ea07a401a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a62c6c06db3ff8e33878da7b3823aa6b1">selectParent</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">selects the parent object of the current element  <a href="#a62c6c06db3ff8e33878da7b3823aa6b1"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a12253f3fecac2e88402601692a802616">selectChild</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">selects the first child object of the current element  <a href="#a12253f3fecac2e88402601692a802616"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#afec5ab0251e3eed2f17853842f2dd796">selectNext</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">selects the next sibling object of the current element  <a href="#afec5ab0251e3eed2f17853842f2dd796"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#aa512b720f1fce7caf46fb2b57bf4b1d1">selectPrevious</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">selects the previous sibling object of the current element  <a href="#aa512b720f1fce7caf46fb2b57bf4b1d1"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#abdccf20889360dd86ce71b72ae66021a">childsAdd</a></td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">add a child outline to this outline.  <a href="#abdccf20889360dd86ce71b72ae66021a"></a><br/></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">add a child outline reference to this outline.  <a href="#abdccf20889360dd86ce71b72ae66021a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a93f2d156280cf103bb0023a5a2554ae9">childsRemove</a></td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">delete a child outline of this outline.  <a href="#a93f2d156280cf103bb0023a5a2554ae9"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a1e88a5b3f4b6b78dae4410d52cb3a507">childsList</a></td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">returns outlines parented to this one (its childs) and mentionned in otl.childs, but as a list and not a string  <a href="#a1e88a5b3f4b6b78dae4410d52cb3a507"></a><br/></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">delete a child outline reference of this outline.  <a href="#a93f2d156280cf103bb0023a5a2554ae9"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#ac6d3cc6bb7daa5a0c6c3759a7abae7a6">childsGet</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">returns outlines parented to this one (its childs) and mentionned in otl.childs, but as a list and not a string  <a href="#ac6d3cc6bb7daa5a0c6c3759a7abae7a6"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a484e6bdc056a91ba1dc9335b5eb779f8">remove</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">remove the element and its generated object cares about relationship  <a href="#a484e6bdc056a91ba1dc9335b5eb779f8"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#adf0255e6c0d8c1fdd65abe7b84ff389e">stack</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">stack an element above this one  <a href="#adf0255e6c0d8c1fdd65abe7b84ff389e"></a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a3f03bb7e120fad95c7a819c1cb088df9">pointer</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#ab74e6bf80237ddc4109968cedc58c151">name</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a00f9e235d1ffdf38151cf23b210c45f3">childs</a></td></tr>
 <tr><td colspan="2"><h2><a name="pub-static-attribs"></a>
@@ -226,6 +246,50 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ab389d566aafa0a30ed7ed079f433b7b3"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::Child" ref="ab389d566aafa0a30ed7ed079f433b7b3" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def Child </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>id</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>attached</em> = <code>False</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>rename an outline, rewrite relationships, update element not sure that's a good idea. </p>
+<p>. though it could be used by elementRemove(), wait and see def rename(self,name) : city = bpy.context.scene.city oldname = self.name self.name = name if self.parent != '' : city.outlines[self.parent].childRemove(oldname) city.outlines[self.parent].childsAdd(name) for child in self.childslist() : city.outlines[child].parent = name self.asElement().name = name returns the first child or None </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">id</td><td>0 (default) the child index -1 for last. id &gt; len(childs) error free : returns last child </td></tr>
+    <tr><td class="paramname">attached</td><td>False (default) returns the outline parent. True returns the builder attached </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the element or None </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="abdccf20889360dd86ce71b72ae66021a"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::childsAdd" ref="abdccf20889360dd86ce71b72ae66021a" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -251,8 +315,7 @@ Static Public Attributes</h2></td></tr>
 </div>
 <div class="memdoc">
 
-<p>add a child outline to this outline. </p>
-<p>otl.childs helper </p>
+<p>add a child outline reference to this outline. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table class="params">
     <tr><td class="paramname">childname</td><td>the outline name (string) </td></tr>
@@ -262,12 +325,12 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a1e88a5b3f4b6b78dae4410d52cb3a507"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::childsList" ref="a1e88a5b3f4b6b78dae4410d52cb3a507" args="" -->
+<a class="anchor" id="ac6d3cc6bb7daa5a0c6c3759a7abae7a6"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::childsGet" ref="ac6d3cc6bb7daa5a0c6c3759a7abae7a6" args="" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">def childsList </td>
+          <td class="memname">def childsGet </td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname"><em>self</em></td><td>)</td>
@@ -307,8 +370,7 @@ Static Public Attributes</h2></td></tr>
 </div>
 <div class="memdoc">
 
-<p>delete a child outline of this outline. </p>
-<p>otl.childs helper </p>
+<p>delete a child outline reference of this outline. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table class="params">
     <tr><td class="paramname">childname</td><td>the outline name (string) </td></tr>
@@ -377,23 +439,6 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ab979134847503bb09d60715ac666c114"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::isChild" ref="ab979134847503bb09d60715ac666c114" args="" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">def isChild </td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>self</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-</div>
-</div>
 <a class="anchor" id="a474c47e230357dc77b2bfda5ff1e6505"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::nameMain" ref="a474c47e230357dc77b2bfda5ff1e6505" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -448,6 +493,42 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a759576c12ddec28b93d1ff1262926d1d"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::Next" ref="a759576c12ddec28b93d1ff1262926d1d" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def Next </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>attached</em> = <code>False</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>returns the next sibling </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">attached</td><td>False (default) returns the outline parent. True returns the builder attached </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the element or None </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a1f703da4e6b96e334ee64c304efa30f0"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::object" ref="a1f703da4e6b96e334ee64c304efa30f0" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -464,6 +545,61 @@ Static Public Attributes</h2></td></tr>
 <div class="memdoc">
 
 <p>from an element, returns the object </p>
+
+</div>
+</div>
+<a class="anchor" id="addc6a1c14bd370f75e161cf6c39941d4"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::objectAttach" ref="addc6a1c14bd370f75e161cf6c39941d4" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def objectAttach </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>object</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>attach an object to an outline element </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">object</td><td>an object or its name </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>True if the object has been attached </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ab19f7bbb0f5c0a4779431ecf8e973379"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::objectDetach" ref="ab19f7bbb0f5c0a4779431ecf8e973379" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def objectDetach </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>detach the object of the element </p>
 
 </div>
 </div>
@@ -494,8 +630,18 @@ Static Public Attributes</h2></td></tr>
           <td class="memname">def objectNameSet </td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>self</em></td><td>)</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>name</em> = <code>False</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div>
@@ -505,12 +651,12 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a80613e78870d533163dd781585db586f"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::parent" ref="a80613e78870d533163dd781585db586f" args="" -->
+<a class="anchor" id="a3d1acb1c99d8312122e6a9c594361aa6"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::objectRemove" ref="a3d1acb1c99d8312122e6a9c594361aa6" args="" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">def parent </td>
+          <td class="memname">def objectRemove </td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname"><em>self</em></td><td>)</td>
@@ -519,6 +665,44 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
+<p>Delete the object of the element if built. </p>
+
+</div>
+</div>
+<a class="anchor" id="ab684b508fd044cecc2947a86d92a070e"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::Parent" ref="ab684b508fd044cecc2947a86d92a070e" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def Parent </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>attached</em> = <code>False</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>returns the parent element </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">attached</td><td>False (default) returns the outline parent. True returns the builder attached </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the element or None </dd></dl>
 
 </div>
 </div>
@@ -538,6 +722,77 @@ Static Public Attributes</h2></td></tr>
 <div class="memdoc">
 
 <p>returns the outline if the element is a builder or an Element, returns the builder if the element is an outline </p>
+
+</div>
+</div>
+<a class="anchor" id="aea41fc1aec1569403c1beadd879ccdb1"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::Previous" ref="aea41fc1aec1569403c1beadd879ccdb1" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def Previous </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>attached</em> = <code>False</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>returns the previous sibling </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">attached</td><td>False (default) returns the outline parent. True returns the builder attached </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the element or None </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a484e6bdc056a91ba1dc9335b5eb779f8"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::remove" ref="a484e6bdc056a91ba1dc9335b5eb779f8" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def remove </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>del_object</em> = <code>True</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>remove the element and its generated object cares about relationship </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">del_object</td><td>(default True) delete the attached object </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -595,6 +850,14 @@ Static Public Attributes</h2></td></tr>
 </div>
 <div class="memdoc">
 
+<p>selects the first child object of the current element </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">attached</td><td>(default False) if True returns always the builder object and not the outline </td></tr>
+  </table>
+  </dd>
+</dl>
+
 </div>
 </div>
 <a class="anchor" id="afec5ab0251e3eed2f17853842f2dd796"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::selectNext" ref="afec5ab0251e3eed2f17853842f2dd796" args="" -->
@@ -621,6 +884,14 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
+<p>selects the next sibling object of the current element </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">attached</td><td>(default False) if True returns always the builder object and not the outline </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -684,6 +955,49 @@ Static Public Attributes</h2></td></tr>
 </div>
 <div class="memdoc">
 
+<p>selects the previous sibling object of the current element </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">attached</td><td>(default False) if True returns always the builder object and not the outline </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="adf0255e6c0d8c1fdd65abe7b84ff389e"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::stack" ref="adf0255e6c0d8c1fdd65abe7b84ff389e" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def stack </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>builder</em> = <code>'same'</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>stack an element above this one </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">builder</td><td>(default 'same') the builderclass name of the new element. if not given, stack the same builder than the current element. </td></tr>
+  </table>
+  </dd>
+</dl>
+
 </div>
 </div>
 <hr/><h2>Member Data Documentation</h2>
@@ -713,8 +1027,6 @@ Static Public Attributes</h2></td></tr>
 </div>
 <div class="memdoc">
 
-<p>Reimplemented in <a class="el" href="../../de/d90/classblended__cities_1_1core_1_1class__main_1_1_b_c__outlines.html#ab74e6bf80237ddc4109968cedc58c151">BC_outlines</a>.</p>
-
 </div>
 </div>
 <a class="anchor" id="ae7333ba405268c394ce84ab3b54f4030"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::name" ref="ae7333ba405268c394ce84ab3b54f4030" args="" -->
@@ -728,8 +1040,6 @@ Static Public Attributes</h2></td></tr>
 </div>
 <div class="memdoc">
 
-<p>Reimplemented in <a class="el" href="../../de/d90/classblended__cities_1_1core_1_1class__main_1_1_b_c__outlines.html#ab74e6bf80237ddc4109968cedc58c151">BC_outlines</a>.</p>
-
 </div>
 </div>
 <a class="anchor" id="a3d19c4c423dddccebe68a85d2a823958"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::pointer" ref="a3d19c4c423dddccebe68a85d2a823958" args="" -->
@@ -738,6 +1048,19 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">tuple <a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a3d19c4c423dddccebe68a85d2a823958">pointer</a> = bpy.props.StringProperty(default='-1')<code> [static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a3f03bb7e120fad95c7a819c1cb088df9"></a><!-- doxytag: member="blended_cities::core::class_main::BC_elements::pointer" ref="a3f03bb7e120fad95c7a819c1cb088df9" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html#a3d19c4c423dddccebe68a85d2a823958">pointer</a></td>
         </tr>
       </table>
 </div>
@@ -771,7 +1094,7 @@ Static Public Attributes</h2></td></tr>
       <li class="navelem"><a class="el" href="../../db/da0/namespaceblended__cities_1_1core.html">core</a>      </li>
       <li class="navelem"><a class="el" href="../../dc/d05/namespaceblended__cities_1_1core_1_1class__main.html">class_main</a>      </li>
       <li class="navelem"><a class="el" href="../../d8/d54/classblended__cities_1_1core_1_1class__main_1_1_b_c__elements.html">BC_elements</a>      </li>
-      <li class="footer">Generated on Wed Jul 27 2011 11:09:26 for Blended Cities by&#160;
+      <li class="footer">Generated on Mon Aug 1 2011 05:06:21 for Blended Cities by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/></a> 1.7.4 </li>
     </ul>
