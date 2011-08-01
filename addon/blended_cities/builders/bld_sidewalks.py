@@ -43,14 +43,13 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
         z = self.blockheight
         for perimeter in perimeters :
             fpf = len(perimeter)
-
             for c in perimeter :
                 verts.append( Vector(( c[0],c[1],c[2] )) )
             for c in perimeter :
                 verts.append( Vector(( c[0],c[1],c[2] + z )) )
-            faces.extend( facesLoop(0,fpf) )
-            faces.extend( fill(verts[fpf:],fpf) )
-            fof += fpf
+            faces.extend( facesLoop(fof,fpf) )
+            faces.extend( fill(verts[-fpf:],fof+fpf) )
+            fof += fpf*2
 
         ob = objectBuild(self, verts, [], faces, [], [])
 

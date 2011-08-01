@@ -47,6 +47,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         update=updateBuild
         )
     firstFloor = bpy.props.BoolProperty(update=updateBuild)
+    linesAsWall = bpy.props.BoolProperty(update=updateBuild)
     interFloorHeight = bpy.props.FloatProperty(
         default = 0.3,
         min=0.1,
@@ -59,7 +60,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         max=1.0,
         update=updateBuild
         )
-    materialslots = ['floor','inter']
+    materialslots = ['floor','inter','roof','wall']
     materials = ['floor','inter']
 
     ## every builder class must have a function named build().
@@ -68,57 +69,100 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         otl = self.peer()
         print('** build() %s (outline %s)'%(self.name,otl.name))
 
-        matslots = ['floor','inter','roof'] 
+        matslots = ['floor','inter','roof','wall']
         mat_floor = 0
         mat_inter = 1
         mat_roof = 2
-
-        if refreshData :
-            print('ask for data read')
-            otl.dataRead()
-        perimeter = otl.dataGet('perimeters')
-        zlist = zcoords(perimeter)
-        print('highest vert is %s'%max(zlist))
-        
+        mat_wall = 3
         verts = []
         faces = []
         mats  = []
 
-        fof = 0 # 'floor' vertex id offset
+        if refreshData :
+            print('ask for data read')
+            otl.dataRead()
 
-        for id in range(len(perimeter)) :
+        data = otl.dataGet('all')
+        #for k,v in data.items() :
+        #    print('%s :\n%s'%(k,v))
+        perimeter = data['perimeters']
+        lines = data['lines']
 
-            fpf = len(perimeter[id]) # nb of faces per floor
+        if len(perimeter) or len(lines) > 0 :
+            zlist = zcoords(perimeter+lines)
+            fof = 0 # vertex id offset
 
-            # non planar outlines : add simple fundations. todo : should be part of floors
-            if max(zlist) - min(zlist) > 0.000001 :
-                verts.extend( perimeter[id] )
-                faces.extend( facesLoop(fof,fpf) )
-                mats.extend( mat_floor for i in range(fpf) )
-                fof += fpf
-
-            zs = self.heights(max(zlist))#bounds[2][0])
-            for zi,z in enumerate(zs) :
-                for c in perimeter[id] :
-                    verts.append( Vector(( c[0],c[1],z )) )
-                
-                # while roof not reached, its a floor so add faces and mats
-                if z != zs[-1] : 
-                    faces.extend( facesLoop(fof,fpf) )
-                    mat_id = zi%2
-                    mats.extend( mat_id for i in range(fpf) )
-                # else fills the roof
+            if len(lines) > 0 :
+                if self.linesAsWall :
+                    for line in lines :
+                        print('%s'%(line))
+                        fpf = len(line)#- 1
+                        verts.extend(line)
+                        for c in line :
+                            verts.append( Vector(( c[0],c[1],c[2] + 1 )) )
+                        faces.extend(facesLoop(fof,fpf,True))
+                        mats.extend( mat_wall for i in range(fpf-1) )
+                        fof += fpf * 2
                 else :
-                    roof = fill(verts[-fpf:],fof)
-                    mats.extend( mat_roof for i in range(len(roof)) )
-                    faces.extend( roof )
-                fof += fpf
+                    for line in lines :
+                        fpf = len(line) # nb of faces per floor
 
-        ob = objectBuild(self, verts, [], faces, matslots, mats)
+                        # non planar outlines : add simple fundations. todo : should be part of floors
+                        if max(zlist) - min(zlist) > 0.000001 :
+                            verts.extend(line)
+                            faces.extend(facesLoop(fof,fpf,True))
+                            mats.extend( mat_floor for i in range(fpf-1) )
+                            fof += fpf
 
-        height = self.height() + max(zlist)
-        updateChildHeight(otl,height)
-        print('* end build()')
+                        zs = self.heights(max(zlist))#bounds[2][0])
+                        for zi,z in enumerate(zs) :
+                            for c in line :
+                                verts.append( Vector(( c[0],c[1],z )) )
+                            
+                            # while roof not reached, its a floor so add faces and mats
+                            if z != zs[-1] : 
+                                faces.extend( facesLoop(fof,fpf,True) )
+                                mat_id = zi%2
+                                mats.extend( mat_id for i in range(fpf-1) )
+                            fof += fpf
+        
+            if len(perimeter) > 0 :
+                for id in range(len(perimeter)) :
+
+                    fpf = len(perimeter[id]) # nb of faces per floor
+
+                    # non planar outlines : add simple fundations. todo : should be part of floors
+                    if max(zlist) - min(zlist) > 0.000001 :
+                        verts.extend( perimeter[id] )
+                        faces.extend( facesLoop(fof,fpf) )
+                        mats.extend( mat_floor for i in range(fpf) )
+                        fof += fpf
+
+                    zs = self.heights(max(zlist))#bounds[2][0])
+                    for zi,z in enumerate(zs) :
+                        for c in perimeter[id] :
+                            verts.append( Vector(( c[0],c[1],z )) )
+                        
+                        # while roof not reached, its a floor so add faces and mats
+                        if z != zs[-1] : 
+                            faces.extend( facesLoop(fof,fpf) )
+                            mat_id = zi%2
+                            mats.extend( mat_id for i in range(fpf) )
+                        # else fills the roof
+                        else :
+                            roof = fill(verts[-fpf:],fof)
+                            mats.extend( mat_roof for i in range(len(roof)) )
+                            faces.extend( roof )
+                        fof += fpf
+
+            ob = objectBuild(self, verts, [], faces, matslots, mats)
+
+            height = self.height() + max(zlist)
+            updateChildHeight(otl,height)
+            print('* end build()')
+        else :
+            print('* cant build, nothing for me in outline')
+
 
     def heights(self,offset=0) :
         city = bpy.context.scene.city
@@ -215,3 +259,8 @@ class BC_buildings_panel(bpy.types.Panel) :
         row.active = ena
         row.label(text = 'Roof Height :')
         row.prop(building,'roofHeight')
+
+        row = layout.row()
+        row.active = True
+        row.label(text = 'lines are walls :')
+        row.prop(building,'linesAsWall')

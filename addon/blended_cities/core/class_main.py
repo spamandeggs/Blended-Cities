@@ -444,9 +444,10 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
     # @param what 'perimeters', 'lines', 'dots', 'matrix', or 'all' default is 'perimeters'
     # @param data a list with nested list of vertices or a complete dictionnary conaining the four keys
     def dataSet(self,data,what='perimeters',meters=True) :
-        pdata = self.dataGet('all',meters)
         if what == 'all' : pdata = data
-        pdata[what] = data
+        else :
+            pdata = self.dataGet('all',meters)
+            pdata[what] = data
         if meters :
             print('dataSet received %s %s datas in meters :'%(self.name,what)) 
             pdata['perimeters'] = metersToBu(pdata['perimeters'])
@@ -464,9 +465,9 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
         obsource=self.object()
         if obsource :
             # data extracted are in BU no meter so dataSet boolean is False
-            mat, perim = outlineRead(obsource)
-            self.dataSet(perim,'perimeters',False)
-            self.dataSet(mat,'matrix',False)
+            mat, perims, lines,dots = outlineRead(obsource)
+            data = {'perimeters':perims, 'lines':lines, 'dots':dots, 'matrix':mat }
+            self.dataSet(data,'all',False)
             return True
         else :
             print('no object ! regenerate')

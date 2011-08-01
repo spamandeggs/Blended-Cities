@@ -20,9 +20,10 @@ def fill(vertlist,offset=0) :
     return faces
 
 ## check if there's nested lists in a list. used by functions that need
-# list(s) of vertices as input
-# returns the given list always nested,
-# and a bolean : True if was nested, False if was not
+# list(s) of vertices/faces/edges etc as input
+# @param lst a list or a list of list
+# @returns always nested list(s)
+# a boolean True if was nested, False if was not
 def nested(lst) :
     try :
         t = lst[0][0][0]
@@ -68,7 +69,9 @@ def metersToBu(vertslists) :
 
 ## retrieve
 def outlineRead(obsource) :
-            
+
+            # RETRIEVING
+
             mat=Matrix(obsource.matrix_local)
             #mat=Matrix(obsource.matrix_world)
             if len(obsource.modifiers) :
@@ -90,43 +93,74 @@ def outlineRead(obsource) :
                 z = int(z * 1000000) / 1000000
                 verts[vi]=Vector((x,y,z))
 
+            # DISCOVERING
+
+            # for each vert, store its neighbour(s) or nothing for dots
             neighList=[[] for v in range(len(verts))]
             for e in edges :
                 neighList[e[0]].append(e[1])
                 neighList[e[1]].append(e[0])
-            # todo some tests to check if it's a perimeter : closed, only 2 neighbours/verts, no intersection, only one perimeter..
-            # assuming the user if someone kind for now, shut up greg. 
 
+            # lst is used to know if a vert has been 'analysed' ( = -1 ) or not.
             lst = [ i for i in range(len(verts)) ]
-            vertcount = 0
-            perim = [ ]
+            perims = [ ]
+            dots = [ ]
+            lines = [ ]
+            routers = {}
 
-            # perimeters and lines
-            while vertcount < len(verts) :
-                for i,startvert in enumerate(lst) :
-                    if startvert != -1 :
-                        lst[i] = -1
-                        break
-                        
-                vi = startvert
-                pvi = startvert
-                vertcount += 1
-                go=True
+            # dots : verts with no neighbours
+            for i,neighs in enumerate(neighList) :
+                if neighs == [] :
+                    dots.append(verts[i])
+                    lst[i] = -1
 
-                newperim = [ verts[startvert] ]
-                while go :
-                    nvi = neighList[vi][0] if neighList[vi][0] != pvi else neighList[vi][1]
-                    if nvi != startvert : 
-                        newperim.append( verts[nvi] )
-                        lst[nvi] = -1
-                        pvi = vi
-                        vi = nvi
-                        vertcount += 1
-                    else :
-                        perim.append(newperim)
-                        go=False
+            # lines/network
+            for vi,neighs in enumerate(neighList) :
+                if len(neighs) == 1 or len(neighs) >= 3 : #and lst[i] != -1 :
+                    for ni in neighs :
+                        if lst[ni] != -1 :
+                            line, rm, closed = readLine(vi,ni,verts,neighList)
+                            for off in rm : lst[off] = -1
+                            if closed : perims.append(line)
+                            else : lines.append(line)
+                    lst[vi] = -1
+                    # this vi is a router with len(neigh) road
+                    # ...
+                    # ...
 
-            return mat, perim
+            # perimeters
+            for vi,neighs in enumerate(neighList) :
+                if len(neighs) == 2 and lst[vi] != -1 :
+                    ni = neighs[0] if neighs[0] != vi else neighs[1]
+                    perim, rm, closed = readLine(vi,ni,verts,neighList)
+                    for off in rm : lst[off] = -1
+                    lst[vi] = -1
+                    perims.append(perim)
+                    print('\n%s\n'%perim)
+                    # should add a router for closed perimeter
+                    # ...
+                    # ...
+            # check
+            for vi,l in enumerate(lst) :
+               if l != -1 : print(verts[vi])
+
+            return mat, perims, lines, dots
+
+def readLine(pvi,vi,verts,neigh) :
+    start = pvi
+    line = [ verts[pvi], verts[vi] ]
+    go = True
+    rm = []
+    while go and len(neigh[vi]) == 2 :
+        nvi = neigh[vi][0] if neigh[vi][0] != pvi else neigh[vi][1]
+        rm.append(vi)
+        if nvi == start : go = False
+        else :
+            line.append( verts[nvi] )
+            pvi = vi
+            vi = nvi
+    if len(neigh[vi]) == 1 :  rm.append(neigh[vi][0])
+    return line, rm, not(go)
 
 def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
     global debug
@@ -368,17 +402,18 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
         bpy.context.scene.objects.link(ob)
     return ob
  
-
-
-def facesLoop(offset,length,loop=1) :
-    '''from length, an int defining a number of verts of a perimeter outline
-    offset, definins the vert ID of the first vert
-    todo : loop, the number of layer
-    build faces between ordered 'lines' of vertices of a closed shape
-    '''
+# returns faces from a loop of vertices
+# @param offset int index of the first vertex
+# @param length int number of verts defining a line or a poly
+# @param line bool True if is a line, False (default) if is a poly
+# @param loop TODO number of layers of faces
+# @return quad faces
+def facesLoop(offset,length,line=False,loop=1) :
     faces = []
     for v1 in range(length) :
-        if v1 == length - 1 : v2 = 0
+        if v1 == length - 1 :
+            if line : return faces
+            v2 = 0
         else : v2 = v1 + 1
         faces.append( ( offset + v1 , offset + v1 + length , offset + v2 + length, offset + v2  ) )
     return faces
