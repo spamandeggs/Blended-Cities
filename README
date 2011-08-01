@@ -2,6 +2,11 @@ Blended Cities for blender 2.5 series
 continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
+2011/08/01
+. dots and lines are now extracted from outlines. should be able to read any kind of meshes now.
+. adapted buildings to use lines as wall or as facades
+. debug about mats, shared vert in outline and sidewalks fill when more than one perimeter
+
 2011/07/31
 * a better class_import by der_On push on master branch
 . class_import debug by littleneo. bugs were in main.py and register_builder().

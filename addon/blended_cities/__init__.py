@@ -45,7 +45,6 @@ def register() :
         # For now they need to be registered first due to: http://wiki.blender.org/index.php/Dev:2.5/Py/API/Overview#Manipulating-Classes
         # Maybe later we find another solution to be able to register builders later too?
         # builders :
-
         register_default_builders()
 
         #operators :
