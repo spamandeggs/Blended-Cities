@@ -2,6 +2,27 @@ Blended Cities for blender 2.5 series
 continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
+2011/08/04
+big update !! news bugs !!
+. builder can requests object from external files (library. minimal. use the default object file from bc 2.49 asis)
+. builder can build/append several library/parametric objects, ** including outlines ** :
+  this means we've got a first implementation of outline influences (parent to childs outlines).
+  to test : build a sidewalk, add a building on the generated outline, modify the sidewalk outline or change the width prop.
+. added a weird parks builder for multi-object tests and debugs.
+. added a network builder for outlines inheritance tests. not working. (an outlines that creates outlines)
+. as a consequence elm.pointer returns one or several objects in a list.
+. added 'objects' collection that stores instance of external objects
+. added 'nones' collection to store an outline apart from a builder, without breaking elm methods
+. added a bc_element field in collections, used to name elements in collection
+. element methods use bc_collection for lookup, not names
+. in Elements, renamed 'type' to 'collection' used for elm -> bld or otl lookup.
+. splitted/created modules : geo, library, common.
+. various new elm methods and mods of existing ones (_rem, _add, removeObject...)
+. elementAdd() : if obj is already used as outline, will update it (removes the previous bld, add the new)
+. bld.build() builder methods are now called from city.builders.build(bld)
+. various bug : rescaling, childs location, gui, elements/object cleaning
+...
+
 2011/08/01
 . dots and lines are now extracted from outlines. should be able to read any kind of meshes now.
 . adapted buildings to use lines as wall or as facades

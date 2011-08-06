@@ -6,31 +6,12 @@ import bpy
 import mathutils
 import random
 from mathutils import *
-import collections
 
 from blended_cities.core.class_main import *
-
-## like tesselate but with an optional index offset giving the first vert index
-# @param list of vertices. vertices are in Vector format.
-# @offset index of the first vertex
-# @return list of faces
-def fill(vertlist,offset=0) :
-    faces = geometry.tesselate_polygon([vertlist])
-    for i,f in enumerate(faces) : faces[i] = ( f[0] + offset, f[1] + offset, f[2] + offset )
-    return faces
-
-## check if there's nested lists in a list. used by functions that need
-# list(s) of vertices/faces/edges etc as input
-# @param lst a list or a list of list
-# @returns always nested list(s)
-# a boolean True if was nested, False if was not
-def nested(lst) :
-    try :
-        t = lst[0][0][0]
-        return lst, True
-    except :
-        return [lst], False
-
+from blended_cities.core.common import *
+from blended_cities.utils.geo import *
+  
+    
 def matToString(mat) :
     #print('*** %s %s'%(mat,type(mat)))
     return str(mat).replace('\n       ','')[6:]
@@ -38,34 +19,6 @@ def matToString(mat) :
 def stringToMat(string) :
     return Matrix(eval(string))
 
-
-def buToMeters(vertslists) :
-    vertslists, nest = nested(vertslists)
-    scale = bpy.context.scene.unit_settings.scale_length
-    meterslists = []
-
-    for verts in vertslists :
-        meters = []
-        for vert in verts :
-            meters.append(Vector(vert) * scale)
-        meterslists.append(meters)
-        
-    if nest : return meterslists
-    else : return meterslists[0]
-
-def metersToBu(vertslists) :
-    vertslists, nest = nested(vertslists)
-    scale = bpy.context.scene.unit_settings.scale_length
-    meterslists = []
-
-    for verts in vertslists :
-        meters = []
-        for vert in verts :
-            meters.append(Vector(vert) / scale)
-        meterslists.append(meters)
-        
-    if nest : return meterslists
-    else : return meterslists[0]
 
 ## retrieve
 def outlineRead(obsource) :
@@ -136,15 +89,16 @@ def outlineRead(obsource) :
                     for off in rm : lst[off] = -1
                     lst[vi] = -1
                     perims.append(perim)
-                    print('\n%s\n'%perim)
+                    #print('\n%s\n'%perim)
                     # should add a router for closed perimeter
                     # ...
                     # ...
             # check
-            for vi,l in enumerate(lst) :
-               if l != -1 : print(verts[vi])
+            #for vi,l in enumerate(lst) :
+            #   if l != -1 : print(verts[vi])
 
             return mat, perims, lines, dots
+
 
 def readLine(pvi,vi,verts,neigh) :
     start = pvi
@@ -161,6 +115,7 @@ def readLine(pvi,vi,verts,neigh) :
             vi = nvi
     if len(neigh[vi]) == 1 :  rm.append(neigh[vi][0])
     return line, rm, not(go)
+
 
 def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
     global debug
@@ -237,80 +192,10 @@ def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
     else :
         return Vector([xmin,ymin,0]),Vector([xmax-xmin,ymax-ymin,0])
 
-
-def wipeOutObject(ob,and_data=True) :
-    if type(ob) == str :
-        try : ob = bpy.data.objects[ob]
-        except : return
-
-    data = bpy.data.objects[ob.name].data
-    #and_data=False
-    # never wipe data before unlink the ex-user object of the scene else crash (2.58 3 770 2)
-    # so if there's more than one user for this data, never wipeOutData. will be done with the last user
-    # if in the list
-    try :
-        if data.users > 1 :
-            and_data=False
-    except :
-        and_data=False # empties have no user
-    # odd :
-    ob=bpy.data.objects[ob.name]
-    # if the ob (board) argument comes from bpy.data.groups['aGroup'].objects,
-    #  bpy.data.groups['board'].objects['board'].users_scene
-
-    for sc in ob.users_scene :
-        ob.name = '_dead'#print(sc.name)
-        #ob.location = [-1000,0,0]
-        sc.objects.unlink(ob)
-
-    try : bpy.data.objects.remove(ob)
-    except : print('data.objects.remove issue with %s'%ob.name)
-
-    # never wipe data before unlink the ex-user object of the scene else crash (2.58 3 770 2)
-    if and_data :
-        wipeOutData(data)
-
-
-def wipeOutData(data) :
-    if data.users == 0 :
-        try :
-            data.user_clear()
-
-            # mesh
-            if type(data) == bpy.types.Mesh :
-                bpy.data.meshes.remove(data)
-            # lamp
-            elif type(data) in [bpy.types.PointLamp,bpy.types.SpotLamp,bpy.types.HemiLamp,bpy.types.AreaLamp,bpy.types.SunLamp] :
-                bpy.data.lamps.remove(data)
-            # camera
-            elif type(data) == bpy.types.Camera :
-                bpy.data.cameras.remove(data)
-            # Text, Curve
-            elif type(data) in [ bpy.types.Curve, bpy.types.TextCurve ] :
-                bpy.data.curves.remove(data)
-            # metaball
-            elif type(data) == bpy.types.MetaBall :
-                bpy.data.metaballs.remove(data)
-            # lattice
-            elif type(data) == bpy.types.Lattice :
-                bpy.data.lattices.remove(data)
-            # armature
-            elif type(data) == bpy.types.Armature :
-                bpy.data.armatures.remove(data)
-            else :
-                print('data still here : forgot %s'%type(data))
-
-        except :
-            # empty, field
-            print('%s has no user_clear attribute.'%data.name)
-    else :
-        print('%s has %s user(s) !'%(data.name,data.users))
-
-
 ## lock or unlock an object matrix
 # @param ob the object to lock/unlock
 # @param state True to lock, False to unlock
-def objectFreedom(ob,state) :
+def objectLock(ob,state=True) :
     for i in range(3) :
         ob.lock_rotation[i] = state
         ob.lock_location[i] = state
@@ -318,28 +203,32 @@ def objectFreedom(ob,state) :
 
 
 def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
-    print('build element %s (%s)'%(elm,elm.className()))
+    #print('build element %s (%s)'%(elm,elm.className()))
+    print('object build')
     city = bpy.context.scene.city
     # apply current scale
     verts = metersToBu(verts)
     
-    obname = elm.objectName()
-    if obname == False :
-        obname = elm.name
-    ob = createMeshObject(obname, verts, edges, faces, matslots, mats)
-    elm.asElement().pointer = str(ob.as_pointer())
-    if elm.className() == 'outlines' :
-        if elm.parent :
-            ob.parent = city.outlines[elm.parent].object()
-    else :
-        objectFreedom(ob,False)
-        otl = elm.asOutline()
-        ob.parent = otl.object()
-    #ob.matrix_local = Matrix() # not used
-    #ob.matrix_world = Matrix() # world
-    
-    return ob
+    if type(elm) != str :
+        obname = elm.objectName()
+        if obname == False :
+            obname = elm.name
+    else : obname= elm
 
+    obnew = createMeshObject(obname, verts, edges, faces, matslots, mats)
+    #elm.asElement().pointer = str(ob.as_pointer())
+    if type(elm) != str :
+        if elm.className() == 'outlines' :
+            obnew.lock_scale[2] = True
+            if elm.parent :
+                obnew.parent = elm.Parent().object()
+        else :
+            #otl = elm.asOutline()
+            #ob.parent = otl.object()
+            objectLock(obnew,True)
+        #ob.matrix_local = Matrix() # not used
+        #ob.matrix_world = Matrix() # world
+    return obnew
 
 
 def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
@@ -395,43 +284,17 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
 
     if name not in bpy.data.objects :
         ob = bpy.data.objects.new(name=name, object_data=mesh)
+        dprint('  create object %s'%ob.name)
     else :
         ob = bpy.data.objects[name]
         ob.data = mesh
+        ob.parent = None
+        ob.matrix_local = Matrix()
+        dprint('  reuse object %s'%ob.name)
     if  ob.name not in bpy.context.scene.objects.keys() :
         bpy.context.scene.objects.link(ob)
     return ob
  
-# returns faces from a loop of vertices
-# @param offset int index of the first vertex
-# @param length int number of verts defining a line or a poly
-# @param line bool True if is a line, False (default) if is a poly
-# @param loop TODO number of layers of faces
-# @return quad faces
-def facesLoop(offset,length,line=False,loop=1) :
-    faces = []
-    for v1 in range(length) :
-        if v1 == length - 1 :
-            if line : return faces
-            v2 = 0
-        else : v2 = v1 + 1
-        faces.append( ( offset + v1 , offset + v1 + length , offset + v2 + length, offset + v2  ) )
-    return faces
-
-
-## geometry
-#  @param vertslists a list or a list of lists containing vertices coordinates
-#  @param offset the first vert id of the first vertice
-#  @return a Counter with z coordinates as key and the number of vertices which have that value as value
-def zcoords(vertslists,offset=0) :
-    try : test = vertslists[0][0][0]
-    except : vertslists = [vertslists]
-    zlist = collections.Counter()
-    for vertslist in vertslists :
-        for v in vertslist :
-            zlist[ v[2] + offset ] += 1
-    return zlist
-
 
 def updateChildHeight(otl,height) :
     print('** update childs of %s : %s'%(otl.name,otl.childs ))
@@ -450,5 +313,6 @@ def updateChildHeight(otl,height) :
         otl_child.dataSet(data)
         otl_child.dataWrite()
         bld_child = otl_child.peer()
-        bld_child.build(True)
+        #bld_child.build(True)
+        city.builders.build(bld_child)
 

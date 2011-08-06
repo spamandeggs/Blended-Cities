@@ -4,27 +4,39 @@ from mathutils import *
 from blended_cities.core.class_main import *
 from blended_cities.utils.meshes_io import *
 from blended_cities.core.ui import *
+from blended_cities.utils import  geo
 
 class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
     bc_label = 'Sidewalk'
     bc_description = 'a simple sidewalk'
     bc_collection = 'sidewalks'
+    bc_element = 'sidewalk'
 
     #name = bpy.props.StringProperty()
     attached = bpy.props.StringProperty()   # the perimeter object
-    blockheight = bpy.props.FloatProperty(
+    blockHeight = bpy.props.FloatProperty(
         default = 0.2,
         min=0.1,
         max=0.4,
         update=updateBuild
         )
+    sidewalkWidth = bpy.props.FloatProperty(
+        default = 1.5,
+        min=0.0,
+        max=10.0,
+        update=updateBuild
+        )
     materialslots = ['floor','inter']
     materials = ['floor','inter']
+
+
     def build(self,refreshData=True) :
 
         city = bpy.context.scene.city
         otl = self.peer()
-        print('build sidewalk %s (outline %s)'%(self.name,otl.name))
+
+        # the objects generated here will be contained in :
+        elements = []
 
         matslots = ['floor','inter'] 
         mat_floor = 0
@@ -40,21 +52,33 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
         mats  = []
 
         fof = 0
-        z = self.blockheight
+        z = self.blockHeight
         for perimeter in perimeters :
             fpf = len(perimeter)
+            ground = []
             for c in perimeter :
                 verts.append( Vector(( c[0],c[1],c[2] )) )
             for c in perimeter :
-                verts.append( Vector(( c[0],c[1],c[2] + z )) )
-            faces.extend( facesLoop(fof,fpf) )
-            faces.extend( fill(verts[-fpf:],fof+fpf) )
+                ground.append( Vector(( c[0],c[1],c[2] + z )) )
+            verts.extend(ground)
+            faces.extend( geo.facesLoop(fof,fpf) )
+            faces.extend( geo.fill(verts[-fpf:],fof+fpf) )
             fof += fpf*2
 
-        ob = objectBuild(self, verts, [], faces, [], [])
+            #outline_verts = []
+            #outline_verts.extend(ground)
+            outline_verts = polyIn(ground,-self.sidewalkWidth,'coord')
+            #print('polyin: %s'%pol)
+            outline_edges = edgesLoop(0, len(outline_verts))
+            elements.append( ['outline', outline_verts, outline_edges, [], [], [] ] )
+
+        sidewalks = [ verts, [], faces, [], [] ]
+        elements.append(sidewalks)
+
+        return elements
 
     def height(self,offset=0) :
-        return self.blockheight
+        return self.blockHeight
 
 # a city element panel
 class BC_sidewalks_panel(bpy.types.Panel) :
@@ -88,7 +112,10 @@ class BC_sidewalks_panel(bpy.types.Panel) :
 
         row = layout.row()
         row.label(text = 'Sidewalk Height:')
-        row.prop(sdw,'blockheight')
+        row.prop(sdw,'blockHeight')
 
+        row = layout.row()
+        row.label(text = 'Sidewalk Width:')
+        row.prop(sdw,'sidewalkWidth')
 
         layout.separator()

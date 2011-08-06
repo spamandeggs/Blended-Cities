@@ -53,6 +53,7 @@ def register() :
         bpy.utils.register_class(OP_BC_Selector)
         bpy.utils.register_class(BC_main_panel)
         bpy.utils.register_class(BC_outlines_panel)
+        bpy.utils.register_class(BC_selector_panel)
         # class_main
         bpy.utils.register_class(BC_builders)
         bpy.utils.register_class(BC_outlines)
@@ -83,6 +84,7 @@ def unregister() :
     bpy.utils.unregister_class(OP_BC_Selector)
     bpy.utils.unregister_class(BC_main_panel)
     bpy.utils.unregister_class(BC_outlines_panel)
+    bpy.utils.unregister_class(BC_selector_panel)
 
     # operators
     bpy.utils.unregister_class(OP_BC_cityMethods)

@@ -24,6 +24,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
     bc_label = 'Building'
     bc_description = 'a simple building with multiple floors'
     bc_collection = 'buildings'
+    bc_element = 'building'
 
     #name = bpy.props.StringProperty()
     attached = bpy.props.StringProperty()   # the perimeter object
@@ -67,16 +68,17 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
     # this is were the shape attached to the outline is built
     def build(self,refreshData=True) :
         otl = self.peer()
-        print('** build() %s (outline %s)'%(self.name,otl.name))
+        #print('** build() %s (outline %s)'%(self.name,otl.name))
 
+        verts = []
+        edges = []
+        faces = []
         matslots = ['floor','inter','roof','wall']
+        mats  = []
         mat_floor = 0
         mat_inter = 1
         mat_roof = 2
         mat_wall = 3
-        verts = []
-        faces = []
-        mats  = []
 
         if refreshData :
             print('ask for data read')
@@ -95,7 +97,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
             if len(lines) > 0 :
                 if self.linesAsWall :
                     for line in lines :
-                        print('%s'%(line))
+                        #print('%s'%(line))
                         fpf = len(line)#- 1
                         verts.extend(line)
                         for c in line :
@@ -155,15 +157,13 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
                             faces.extend( roof )
                         fof += fpf
 
-            ob = objectBuild(self, verts, [], faces, matslots, mats)
+            buildings = [verts, [], faces, matslots, mats]
+            return [ buildings ]
 
-            height = self.height() + max(zlist)
-            updateChildHeight(otl,height)
-            print('* end build()')
         else :
             print('* cant build, nothing for me in outline')
 
-
+    # returns the z coordinates of each level (ceilings, floors.. then roof)
     def heights(self,offset=0) :
         city = bpy.context.scene.city
         this = self

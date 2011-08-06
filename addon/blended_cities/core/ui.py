@@ -5,9 +5,9 @@ print('ui.py')
 import bpy
 from blended_cities.utils.meshes_io import *
 
-# ###################
-# COMMON UI OPERATORS 
-# ###################
+####################
+## COMMON UI OPERATORS 
+####################
 # should call a xxx.method rateher than be clever. the least code in it
 # methods could return some value or False/None to obtain the {'CANCELLED'}
 # or {'FINISHED'} status
@@ -46,19 +46,35 @@ class OP_BC_cityMethods(bpy.types.Operator) :
 
         elif act == 'stack' :
             new_objs = city.elementStack(objs,tags)
-            print('stacked %s new %s'%(len(new_objs),tags))
+            print('stacked %s new %s\n'%(len(new_objs),tags))
             # list & select them
+            if len(new_objs) > 0 :
+                for bld, otl in new_objs :
+                    print('{:^25}|{:^25}|{:^25}\n{:^75}'.format('object_name','builder_name','outline_name','-'*75))
+                    obnames = bld.objectName()
+                    if type(obnames) == str : obnames = [obnames]
+                    else : obnames.insert(0,'+ %s +'%bld.name)
+                    for obname in obnames :
+                        print('{:^25}|{:^25}|{:^25}'.format(obname,bld.name,otl.name))
             return {'FINISHED'}
 
         elif act == 'add' :
             new_objs = city.elementAdd(objs,tags)
-            print('created %s new %s'%(len(new_objs),tags))
+            print('created %s new %s\n'%(len(new_objs),tags))
             # list & select them
+            if len(new_objs) > 0 :
+                for bld, otl in new_objs :
+                    print('{:^25}|{:^25}|{:^25}\n{:^75}'.format('object_name','builder_name','outline_name','-'*75))
+                    obnames = bld.objectName()
+                    if type(obnames) == str : obnames = [obnames]
+                    else : obnames.insert(0,'+ %s +'%bld.name)
+                    for obname in obnames :
+                        print('{:^25}|{:^25}|{:^25}'.format(obname,bld.name,otl.name))
             return {'FINISHED'}
 
         elif act == 'remove' :
             del_objs = city.elementRemove(objs,tags,eval(elms))
-            print('removed %s objects from %s'%(len(del_objs),tags))
+            print('removed %s objects from %s\n'%(len(del_objs),tags))
             # list them
             return {'FINISHED'} 
 
@@ -67,7 +83,6 @@ class OP_BC_cityMethods(bpy.types.Operator) :
 
 ## Operator called by drawElementSelector
 class OP_BC_Selector(bpy.types.Operator) :
-    '''next camera'''
     bl_idname = 'city.selector'
     bl_label = 'Next'
 
@@ -90,40 +105,10 @@ class OP_BC_Selector(bpy.types.Operator) :
             bpy.ops.object.mode_set(mode='EDIT')
         return {'FINISHED'}
 
-## set of common methods for operators (actually just one atm :)
-# 'add above' allows to stack a new outline and a new member of the current class above an existing element.
-# it takes the higher vert of the parent element and construct from here a new outline, based on the data of his parent.
-# its cares about elements relationships and parenting of the objects
 
-class OP_BC_buildingWipe(bpy.types.Operator) :
-   
-    bl_idname = 'buildings.wipe'
-    bl_label = 'remove all'
-    
-    removetag = bpy.props.BoolProperty()
-    
-    def execute(self,context) :
-        city = bpy.context.scene.city
-        for b in city.builders.buildings :
-            wipeOutObject(b.name)
-        if self.removetag :
-            while len(city.builders.buildings) > 0 :
-                name=city.builders.buildings[0].name
-                elm = city.elements[name].index()
-                city.builders.buildings.remove(0)
-                city.elements.remove(elm)
-            while len(city.outlines) > 0 :
-                name=city.outlines[0].name
-                elm = city.elements[name].index()
-                city.outlines.remove(0)
-                city.elements.remove(elm)
-                # but we keep the objects
-        return {'FINISHED'}
-
-
-# ########################################################
-# set of generic update functions used in builders classes
-# ########################################################
+#################################################
+## set of generic update functions used in builders classes
+#################################################
 
 ## can be used by the update function of the panel properties of a builder
 #
@@ -131,25 +116,26 @@ class OP_BC_buildingWipe(bpy.types.Operator) :
 #
 # defined in the builders class element
 def updateBuild(self,context='') :
-    self.build(True)
+    bpy.context.scene.city.builders.build(self)
 
-# ###################################################
-# COMMON UIs PANEL
-# ###################################################
+
+##################################################
+## COMMON UIs PANEL
+##################################################
 
 ## can be called from panel a draw() function
 #
-# to navigate into parts (elements) of an object.
-# it dispplays navigation buttons that can select an element related to the selected one : parent, child or sibling element.
+# header just to centralize icons
 def drawHeader(self,classtype) :
+    text = classtype
     if classtype == 'builders'   : icn = 'OBJECT_DATAMODE'
     elif classtype == 'outlines' : icn = 'MESH_DATA'
     elif classtype == 'elements' : icn = 'WORDWRAP_ON'
     elif classtype == 'main'     : icn = 'SCRIPTWIN'
+    elif classtype == 'selector' : icn = 'RESTRICT_SELECT_OFF' ; return icn
     layout = self.layout
     row = layout.row(align = True)
-    row.label(icon = icn )
-
+    row.label(icon = icn)
 
 ## can be called from panel a draw() function
 #
@@ -161,7 +147,6 @@ def drawElementSelector(layout,otl) :
     row.operator( "city.selector",text='', icon = 'TRIA_UP' ).action='%s child'%otl.name
     row.operator( "city.selector",text='', icon = 'TRIA_LEFT' ).action='%s previous'%otl.name
     row.operator( "city.selector",text='', icon = 'TRIA_RIGHT' ).action='%s next'%otl.name
-    row.operator( "city.selector",text='Edit', icon = 'TRIA_RIGHT' ).action='%s edit'%otl.name
 
 ## draw start/stop modal buttons
 def drawModal(layout) :
@@ -183,13 +168,26 @@ def pollBuilders(context, classname, obj_mode = 'OBJECT') :
     if bpy.context.mode == obj_mode and \
     len(bpy.context.selected_objects) == 1 and \
     type(bpy.context.active_object.data) == bpy.types.Mesh :
-        elm, otl = city.elementGet(bpy.context.active_object)
+        elm, otl = city.elementGet()
         if elm :
             #print(elm.name,elm.className(),elm.peer().className(),classname)
             if ( elm.className() == 'outlines' and elm.peer().className() == classname) or \
             elm.className() == classname :
-                #print('True')
                 return True
+    return False
+
+
+## depending on the user selection in the 3d view, display the element selector panel
+# will display the selector panel it the current selection as childs or parent
+def pollSelector(context, obj_mode = 'OBJECT') :
+    city = bpy.context.scene.city
+    if bpy.context.mode == obj_mode and \
+    len(bpy.context.selected_objects) == 1 and \
+    type(bpy.context.active_object.data) == bpy.types.Mesh :
+        elm, otl = city.elementGet()
+        #if otl : print(otl.name,otl.parent,otl.childs)
+        if otl and ( otl.parent != '' or otl.childs != '' ) :
+            return True
     return False
 
 #
@@ -219,7 +217,8 @@ def drawOutlinesTools(layout) :
     wm = bpy.context.window_manager
 
     row = layout.row()
-    row.operator('city.method',text = 'Stack a new element').action='stack selected %s'%wm.city_builders_dropdown
+    #row.operator('city.method',text = 'Stack a %s'%wm.city_builders_dropdown).action='stack selected %s'%wm.city_builders_dropdown
+    row.operator('city.method',text = 'Stack a %s'%wm.city_builders_dropdown).action='stack selected %s'%wm.city_builders_dropdown
 
     row = layout.row()
     row.operator('city.method',text = 'Remove').action='remove selected all True'
@@ -247,7 +246,7 @@ class BC_main_panel(bpy.types.Panel) :
         drawModal(layout)
 
 ####################################################
-## the main Blended Cities panel (OBJECT MODE)
+## the Outlines panel (OBJECT MODE)
 ####################################################
 class BC_outlines_panel(bpy.types.Panel) :
     bl_label = 'Outlines'
@@ -257,6 +256,7 @@ class BC_outlines_panel(bpy.types.Panel) :
 
     @classmethod
     def poll(self,context) :
+        return True
         city = bpy.context.scene.city
         if bpy.context.mode == 'OBJECT' and \
         len(bpy.context.selected_objects) >= 1 :
@@ -265,13 +265,13 @@ class BC_outlines_panel(bpy.types.Panel) :
 
     def draw_header(self, context):
         drawHeader(self,'outlines')
-   
+
     def draw(self, context):
         scene  = bpy.context.scene
         wm = bpy.context.window_manager
         city = scene.city
         ob = bpy.context.active_object
-        elm, otl = city.elementGet(ob)
+        elm, otl = city.elementGet()
 
         layout  = self.layout
         layout.alignment  = 'CENTER'
@@ -297,6 +297,44 @@ class BC_outlines_panel(bpy.types.Panel) :
         row = layout.row()
         row.prop(wm,'city_builders_dropdown',text='')
         row.operator('city.method',text = '',icon='FILE_TICK').action='add selected %s'%wm.city_builders_dropdown
+
+####################################################
+## the Element Selector panel (OBJECT MODE)
+####################################################
+class BC_selector_panel(bpy.types.Panel) :
+    bl_label = 'Selector'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_idname = 'select_ops'
+
+    @classmethod
+    def poll(self,context) :
+        return pollSelector(context,'OBJECT')
+
+    def draw_header(self, context):
+        city = bpy.context.scene.city
+        elm, otl = city.elementGet()
+        layout = self.layout
+        row = layout.row(align = True)
+        if otl and ( otl.parent != '' or otl.childs != '' ) :
+            drawElementSelector(layout,otl)
+        icn = drawHeader(self,'selector')
+        row.label(icon = icn)
+
+    def draw(self, context):
+
+        scene  = bpy.context.scene
+        wm = bpy.context.window_manager
+        city = scene.city
+        ob = bpy.context.active_object
+        elm, otl = city.elementGet()
+        layout  = self.layout
+        layout.alignment  = 'CENTER'
+        if otl :
+            row = layout.row()
+            row.operator( "city.selector",text='Edit Outline', icon = 'OUTLINER_OB_MESH' ).action='%s edit'%otl.name
+            # generic selection tool here
+            # select this builder in selected
 
 def register() :
     bpy.utils.register_class(OP_BC_Selector)
