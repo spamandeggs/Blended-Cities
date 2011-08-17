@@ -27,23 +27,18 @@ class BC_parks(BC_elements,bpy.types.PropertyGroup) :
     bc_collection = 'parks'
     bc_element = 'park'
 
-    attached = bpy.props.StringProperty()   # the perimeter object
+    parent = bpy.props.StringProperty() #  name of the group it belongs to
+
     inherit = bpy.props.BoolProperty(default=False,update=updateBuild)
     refresh = bpy.props.BoolProperty(
         update=updateBuild
         )
 
-    def build(self,refreshData=True) :
-        city = bpy.context.scene.city
-        otl = self.peer()
+    def build(self,data) :
+
         mat_grass = 0
         mat_wall = 1
         matslots = ['grass','wall']
-        if refreshData :
-            print('ask for data read')
-            otl.dataRead()
-
-        data = otl.dataGet('all')
 
         verts = []
         faces = []
@@ -108,7 +103,9 @@ class BC_parks_panel(bpy.types.Panel) :
         scene  = bpy.context.scene
 
         # either the park or its outline is selected : lookup
-        park, otl = city.elementGet(bpy.context.active_object)
+        #park, otl = city.elementGet(bpy.context.active_object)
+        elm, grp, otl = city.elementGet('active',True)
+        park = grp.asBuilder()
 
         layout  = self.layout
         layout.alignment  = 'CENTER'

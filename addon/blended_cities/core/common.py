@@ -2,16 +2,16 @@ import bpy
 
 ## returns an object or a list of objects
 # @param ob 'all', 'active', 'selected', <object>, 'objectname'
-# @return <object> , list of objects, or None
+# @return list of objects, or None
 def returnObject(ob) :
     if type(ob) == str :
         if ob == 'all' : return bpy.context.scene.objects
-        elif ob == 'active' : return bpy.context.active_object
+        elif ob == 'active' : return [bpy.context.active_object] if bpy.context.active_object != None else []
         elif ob == 'selected' : return bpy.context.selected_objects
         else :
-            try : return bpy.data.objects[object]
-            except : return None
-    return ob
+            try : return [bpy.data.objects[ob]]
+            except : return []
+    return [ob]
 
 
 def dprint(str,level=1) :
@@ -19,6 +19,14 @@ def dprint(str,level=1) :
     if level <= city.debuglevel :
         print(str)
 
+def display(otl) :
+                for grp in otl.Childs() :
+                    print('{:^75}\n{:35}{:35}'.format('-'*75,' GROUP   : %s'%(grp.name),'builder : %s'%(grp.collection)))
+                    print('{:35}{:35}'.format(' OUTLINE : %s'%(otl.name),'object  : %s'%(otl.objectName())))
+                    print('{:^75}\n{:^25}|{:^25}|{:^25}\n{:^75}'.format('-'*75,'element name','object name','collection','-'*75))
+                    for child in grp.Childs() :
+                        print('{:^25}|{:^25}|{:^25}'.format(child.name,child.objectName(),child.className()))
+                    print('\n')
 
 ## remove an object from blender internal
 def wipeOutObject(ob,and_data=True) :

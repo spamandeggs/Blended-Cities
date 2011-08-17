@@ -4,78 +4,115 @@
 print('ui.py')
 import bpy
 from blended_cities.utils.meshes_io import *
+from blended_cities.core.common import *
 
-####################
+########################
 ## COMMON UI OPERATORS 
-####################
-# should call a xxx.method rateher than be clever. the least code in it
-# methods could return some value or False/None to obtain the {'CANCELLED'}
-# or {'FINISHED'} status
+########################
 
-## this operator links the gui buttons to any city methods
-# example city.init() is called from here by the ui : ops.city.method(action = 'init')
+## city and outlines methods from ui
+# example city.init() is called from here by the ui : ops.city.methods(action = 'init')
 class OP_BC_cityMethods(bpy.types.Operator) :
-    bl_idname = 'city.method'
-    bl_label = 'city method'
+    bl_idname = 'city.methods'
+    bl_label = 'city methods'
 
     action = bpy.props.StringProperty()
 
     def execute(self, context) :
         city = bpy.context.scene.city
-        act = objs = tags = elms = ''
+        act = objs = builder = opt1 = opt2 =''
         args = self.action.split(' ')
         if len(args) == 1 : act = args[0]
         elif len(args) == 2 : act, objs = args
-        elif len(args) == 3 : act, objs, tags = args
-        else : act, objs, tags, elms = args
+        elif len(args) == 3 : act, objs, builder = args
+        elif len(args) == 4 : act, objs, builder, opt1 = args
+        else : act, objs, builder, opt1, opt2 = args
 
-        print('\nact : %s / objs : %s / tags : %s/ elms : %s\n'%(act,objs,tags,elms))
+        print('\naction : %s \nobjects : %s \nbuilder : %s \nopt1 : %s \nopt2 : %s\n'%(act,objs,builder,opt1,opt2))
 
         if act == 'init' :
             city.init()
             return {'FINISHED'}
 
         elif act == 'build' :
-            objs = city.build(objs,tags)
+            objs = city.build(objs,builder)
             print('builded %s objects'%(len(objs)))
             return {'FINISHED'}
 
         elif act == 'list' :
-            city.list(objs,tags)
+            city.list(objs,builder)
             return {'FINISHED'}
 
         elif act == 'stack' :
-            new_objs = city.elementStack(objs,tags)
-            print('stacked %s new %s\n'%(len(new_objs),tags))
+            new_objs = city.elementStack(objs,builder)
+            print('stacked %s new %s\n'%(len(new_objs),builder))
             # list & select them
             if len(new_objs) > 0 :
-                for bld, otl in new_objs :
-                    print('{:^25}|{:^25}|{:^25}\n{:^75}'.format('object_name','builder_name','outline_name','-'*75))
-                    obnames = bld.objectName()
-                    if type(obnames) == str : obnames = [obnames]
-                    else : obnames.insert(0,'+ %s +'%bld.name)
-                    for obname in obnames :
-                        print('{:^25}|{:^25}|{:^25}'.format(obname,bld.name,otl.name))
+                for grp, otl in new_objs :
+                    print('{:^25}|{:^25}\n{:^50}'.format('group_name','outline_name','-'*50))
+                    print('{:^25}|{:^25}'.format(grp.name,otl.name))
+                    print('{:^25}|{:^25}|{:^25}\n{:^75}'.format('object_name','element_name','builder_name','-'*75))
+                    for child in grp.Childs() :
+                        print('{:^25}|{:^25}|{:^25}'.format(child.object().name,child.name,child.className()))
+                    print('\n')
             return {'FINISHED'}
 
         elif act == 'add' :
-            new_objs = city.elementAdd(objs,tags)
-            print('created %s new %s\n'%(len(new_objs),tags))
+            new_objs = city.elementAdd(objs,builder)
+            print('created %s new %s\n'%(len(new_objs),builder))
+            # list & select them
             # list & select them
             if len(new_objs) > 0 :
-                for bld, otl in new_objs :
-                    print('{:^25}|{:^25}|{:^25}\n{:^75}'.format('object_name','builder_name','outline_name','-'*75))
-                    obnames = bld.objectName()
-                    if type(obnames) == str : obnames = [obnames]
-                    else : obnames.insert(0,'+ %s +'%bld.name)
-                    for obname in obnames :
-                        print('{:^25}|{:^25}|{:^25}'.format(obname,bld.name,otl.name))
+
+                for grp, otl in new_objs :
+                    display(otl)
+                    '''
+                    print('{:^75}\n{:35}{:35}'.format('-'*75,' GROUP   : %s'%(grp.name),'builder : %s'%(grp.collection)))
+                    print('{:35}{:35}'.format(' OUTLINE : %s'%(otl.name),'object  : %s'%(otl.objectName())))
+                    print('{:^75}\n{:^25}|{:^25}|{:^25}\n{:^75}'.format('-'*75,'element name','object name','collection','-'*75))
+                    for child in grp.Childs() :
+                    '''
             return {'FINISHED'}
 
-        elif act == 'remove' :
-            del_objs = city.elementRemove(objs,tags,eval(elms))
-            print('removed %s objects from %s\n'%(len(del_objs),tags))
+        elif act == 'remove_otl' :
+            if opt1 == 'elm_obj' :
+                rem_self = True
+                rem_elements = True
+                rem_objects = True
+            elif opt1 == 'elm_only' :
+                rem_self = True
+                rem_elements = True
+                rem_objects = False
+            elif opt1 == 'obj_only' :
+                rem_self = False
+                rem_elements = False
+                rem_objects = True
+            rem_childs = eval(opt2)
+            del_objs = city.outlineRemove(objs,rem_self,rem_elements,rem_objects,rem_childs)
+            print('removed %s objects from %s\n'%(len(del_objs),builder))
             # list them
+            return {'FINISHED'} 
+
+        elif act == 'add_grp' :
+            if opt1 == '' : opt1 = 'True'
+            new_grps = city.groupAdd(objs,builder)
+            return {'FINISHED'} 
+
+        elif act == 'remove_grp' :
+            if opt1 == 'elm_obj' :
+                rem_self = True
+                rem_elements = True
+                rem_objects = True
+            elif opt1 == 'elm_only' :
+                rem_self = True
+                rem_elements = True
+                rem_objects = False
+            elif opt1 == 'obj_only' :
+                rem_self = False
+                rem_elements = False
+                rem_objects = True
+            rem_childs = eval(opt2)
+            del_objs = city.groupRemove(objs,rem_self,rem_elements,rem_objects,rem_childs)
             return {'FINISHED'} 
 
         else : return {'CANCELLED'}
@@ -90,8 +127,8 @@ class OP_BC_Selector(bpy.types.Operator) :
 
     def execute(self, context) :
         city = bpy.context.scene.city
-        otl, action = self.action.split(' ')
-        otl = city.outlines[otl]
+        elm, action = self.action.split(' ')
+        otl = city.elements[elm].asOutline()
         if action == 'child' :
             otl.selectChild(True)
         elif action == 'parent' :
@@ -112,13 +149,106 @@ class OP_BC_Selector(bpy.types.Operator) :
 
 ## can be used by the update function of the panel properties of a builder
 #
-# to rebuild the selected element. it's a 'link' function to the build() function
+# to rebuild the selected element. group it's a 'link' function to the groups.build() function
 #
 # defined in the builders class element
 def updateBuild(self,context='') :
-    bpy.context.scene.city.builders.build(self)
+    self = self.asGroup()
+    self.build()
 
+# checkbox trick for remove option
+# ui.updated = 3 since this func will be called 3 times each time because of update recursion.
+def updateRemoveOptions(self,context='') :
+    ui = bpy.context.scene.city.ui
+    if ui.updated == 0 :
+        if ui.elm_obj  != ui.remove_options[0] :
+            ui.remove_options[0] = True
+            ui.remove_options[1] = False
+            ui.remove_options[2] = False
+            ui.updated = 3
+            ui.elm_obj = True
+            ui.elm_only = False
+            ui.obj_only = False
+        elif ui.elm_only  != ui.remove_options[1] :
+            ui.remove_options[0] = False
+            ui.remove_options[1] = True
+            ui.remove_options[2] = False
+            ui.updated = 3
+            ui.elm_obj = False
+            ui.elm_only = True
+            ui.obj_only = False
+        elif ui.obj_only  != ui.remove_options[2] :
+            ui.remove_options[0] = False
+            ui.remove_options[1] = False
+            ui.remove_options[2] = True
+            ui.updated = 3
+            ui.elm_obj = False
+            ui.elm_only = False
+            ui.obj_only = True
+    else : ui.updated -= 1
+    
+########################
+## UI PROPERTIES
+########################
+class BC_City_ui(bpy.types.PropertyGroup) :
+    debug = bpy.props.IntProperty( name='debug level', min=0, max=5)
+    # panel expand status
+    expand_otl = bpy.props.BoolProperty(default=False)
+    expand_grp = bpy.props.BoolProperty(default=False)
+    # outline/group tabs toggle
+    outlines_tabs_ops = bpy.props.EnumProperty(
+            items = [ ('outline','Outline','display outline operations'),\
+                      ('group','Group','display group operations')\
+                    ]
+            )
+    outline_ops = bpy.props.EnumProperty( 
+            items = [ ('remove_otl','Remove','remove the selected builders'),\
+                      ('stack','Stack','stack this new builder over each selected ones') ]
+            )
+    group_ops = bpy.props.EnumProperty(
+            items = [ ('add_grp','Add','add a new builder to each selected outline'),\
+                      ('replace','Replace','replace each selected builders by this one'),\
+                      ('remove_grp','Remove','remove the selected builders') ]
+            )
+    # the proper enum way for options, but an option is missing to display it the checkbox way.
+    #remove_options = bpy.props.EnumProperty(
+    #        items = [ ('elm_obj','All','Remove elements and their generated objects.'),\
+    #                  ('elm_only','Elements','Remove only the elements. This will detach any generated object.'),\
+    #                  ('obj_only','Objects','Remove only the generated objects.') ],
+    #        options={'ANIMATABLE'}
+    #        )
+    # below is a trick using an update function (updateRemoveOptions above)
+    remove_options = [True,False,False]
+    elm_obj  = bpy.props.BoolProperty(
+        name = 'All',
+        default = remove_options[0],
+        update = updateRemoveOptions,
+        description = 'Remove elements and their generated objects')
 
+    elm_only = bpy.props.BoolProperty(
+        name='Elements',
+        default=remove_options[1],
+        update=updateRemoveOptions,
+        description = 'Remove only the elements. This will detach any generated object.')
+
+    obj_only = bpy.props.BoolProperty(
+        name='Objects',
+        default=remove_options[2],
+        update=updateRemoveOptions,
+        description = 'Remove only the generated objects.')
+
+    updated  = bpy.props.IntProperty(default=0)
+
+    remove_options_childs =  bpy.props.BoolProperty(
+            name= 'Remove childs',
+            default=True,
+            description = 'Remove parented elements/objects'
+            )
+
+    builder_tabs = bpy.props.EnumProperty( 
+            items = [ ('builder','Main','builder properties'),\
+                      ('materials','Materials','') ]
+            )
 ##################################################
 ## COMMON UIs PANEL
 ##################################################
@@ -141,12 +271,12 @@ def drawHeader(self,classtype) :
 #
 # to navigate into parts (elements) of an object.
 # it dispplays navigation buttons that can select an element related to the selected one : parent, child or sibling element.
-def drawElementSelector(layout,otl) :
+def drawElementSelector(layout,elm) :
     row = layout.row(align = True)
-    row.operator( "city.selector", text='', icon = 'TRIA_DOWN').action='%s parent'%otl.name
-    row.operator( "city.selector",text='', icon = 'TRIA_UP' ).action='%s child'%otl.name
-    row.operator( "city.selector",text='', icon = 'TRIA_LEFT' ).action='%s previous'%otl.name
-    row.operator( "city.selector",text='', icon = 'TRIA_RIGHT' ).action='%s next'%otl.name
+    row.operator( "city.selector", text='', icon = 'TRIA_DOWN').action='%s parent'%elm.name
+    row.operator( "city.selector",text='', icon = 'TRIA_UP' ).action='%s child'%elm.name
+    row.operator( "city.selector",text='', icon = 'TRIA_LEFT' ).action='%s previous'%elm.name
+    row.operator( "city.selector",text='', icon = 'TRIA_RIGHT' ).action='%s next'%elm.name
 
 ## draw start/stop modal buttons
 def drawModal(layout) :
@@ -165,17 +295,27 @@ def drawModal(layout) :
 # @param classname String. the name of the builder as in the dropdown.
 def pollBuilders(context, classname, obj_mode = 'OBJECT') :
     city = bpy.context.scene.city
+    if bpy.context.mode == obj_mode :
+    #type(bpy.context.active_object.data) == bpy.types.Mesh :
+        elm = city.elementGet()
+        if elm :
+            #print(elm.name,elm.className(),elm.peer().className(),classname)
+            #if ( bld.className() == 'outlines' and bld.peer().className() == classname) or \
+            if elm.className(True) == classname or elm.asGroup().collection == classname :
+                return True
+    return False
+    '''
     if bpy.context.mode == obj_mode and \
     len(bpy.context.selected_objects) == 1 and \
     type(bpy.context.active_object.data) == bpy.types.Mesh :
-        elm, otl = city.elementGet()
-        if elm :
+        bld, otl = city.elementGet()
+        if bld :
             #print(elm.name,elm.className(),elm.peer().className(),classname)
-            if ( elm.className() == 'outlines' and elm.peer().className() == classname) or \
-            elm.className() == classname :
+            #if ( bld.className() == 'outlines' and bld.peer().className() == classname) or \
+            if bld.className() == classname :
                 return True
     return False
-
+    '''
 
 ## depending on the user selection in the 3d view, display the element selector panel
 # will display the selector panel it the current selection as childs or parent
@@ -184,13 +324,54 @@ def pollSelector(context, obj_mode = 'OBJECT') :
     if bpy.context.mode == obj_mode and \
     len(bpy.context.selected_objects) == 1 and \
     type(bpy.context.active_object.data) == bpy.types.Mesh :
-        elm, otl = city.elementGet()
+        elm = city.elementGet()
         #if otl : print(otl.name,otl.parent,otl.childs)
-        if otl and ( otl.parent != '' or otl.childs != '' ) :
+        if elm and ( otl.parent != '' or otl.childs != '' ) :
             return True
     return False
 
-#
+class WM_OT_Panel_expand(bpy.types.Operator):
+    ''''''
+    bl_idname = "wm.panel_expand"
+    bl_label = ""
+
+    panel = bpy.props.StringProperty(name="toggle_panel", description="name of the panel to show/hide")
+
+    def execute(self, context):
+        city = bpy.context.scene.city
+        exec('city.ui.expand_%s = not city.ui.expand_%s'%(self.panel,self.panel))
+        return {'FINISHED'}
+
+def drawExpand(layout,section_name,section_tag,box=False) :
+        city = bpy.context.scene.city
+        expand = eval('city.ui.expand_%s'%(section_tag))
+        if box :
+            box = layout.box()
+            row = box.row()
+        else :
+            box = True
+            row = layout.row()
+        row.alignment = 'LEFT'
+        row.operator("wm.panel_expand", text=section_name, icon='TRIA_DOWN' if expand else 'TRIA_RIGHT', emboss=False).panel = section_tag
+        return box if expand else False
+
+
+def drawBuilderMaterials(layout,bld) :
+    '''
+    items=[('niet','niet','')]
+    for m in bpy.data.materials :
+            items.append( (m.name,m.name,'') )
+    BC_City_ui.matmenu = bpy.props.EnumProperty(items=items)
+    ui = bpy.context.scene.city.ui
+    row = layout.row()
+    row.prop(ui,'matmenu')
+    '''
+
+    for slot in bld.materialslots :
+        row = layout.row()
+        row.label(text = '%s :'%slot)
+
+
 # some functions that remove/recreate globally the objects of the city. (tests)
 def drawMainbuildingsTool(layout) :
     scene = bpy.context.scene
@@ -199,30 +380,36 @@ def drawMainbuildingsTool(layout) :
     row.prop(scene.unit_settings,'scale_length')
     
     row = layout.row()
-    row.operator('city.method',text = 'Rebuild All').action = 'build all'    
+    row.operator('city.methods',text = 'Rebuild All').action = 'build all'    
 
     row = layout.row()
-    row.operator('city.method',text = 'Initialise').action = 'init'
+    row.operator('city.methods',text = 'Initialise').action = 'init'
 
     row = layout.row()
-    row.operator('city.method',text = 'List Elements').action = 'list all'
+    row.operator('city.methods',text = 'List Elements').action = 'list all'
     
     row = layout.row()
-    row.operator('city.method',text = 'Remove objects').action = 'remove all all False'
+    row.operator('city.methods',text = 'Remove objects').action = 'remove all all False'
 
     row = layout.row()
-    row.operator('city.method',text = 'Remove obj. and tags').action = 'remove all all True'
+    row.operator('city.methods',text = 'Remove obj. and tags').action = 'remove all all True'
 
 def drawOutlinesTools(layout) :
     wm = bpy.context.window_manager
 
     row = layout.row()
-    #row.operator('city.method',text = 'Stack a %s'%wm.city_builders_dropdown).action='stack selected %s'%wm.city_builders_dropdown
-    row.operator('city.method',text = 'Stack a %s'%wm.city_builders_dropdown).action='stack selected %s'%wm.city_builders_dropdown
+    #row.operator('city.methods',text = 'Stack a %s'%wm.city_builders_dropdown).action='stack selected %s'%wm.city_builders_dropdown
+    row.operator('city.methods',text = 'Stack a %s'%wm.city_builders_dropdown).action='stack selected %s'%wm.city_builders_dropdown
 
     row = layout.row()
-    row.operator('city.method',text = 'Remove').action='remove selected all True'
+    row.operator('city.methods',text = 'Remove').action='remove selected all True'
 
+## if this outline is not generated by a builder, draw an edit button
+def drawEditButton(row,elm) :
+    if elm.asOutline().type == 'user' :
+        row.operator( "city.selector",text='Edit', icon = 'OUTLINER_OB_MESH' ).action='%s edit'%elm.asOutline().name
+    else : # generated
+        row.label( text='Generated outline, not editable')
 
 ####################################################
 ## the main Blended Cities panel
@@ -254,6 +441,8 @@ class BC_outlines_panel(bpy.types.Panel) :
     bl_region_type = 'TOOLS'
     bl_idname = 'outlines_ops'
 
+
+
     @classmethod
     def poll(self,context) :
         return True
@@ -270,34 +459,135 @@ class BC_outlines_panel(bpy.types.Panel) :
         scene  = bpy.context.scene
         wm = bpy.context.window_manager
         city = scene.city
+        city_ops = bpy.ops.city
         ob = bpy.context.active_object
-        elm, otl = city.elementGet()
-
+        elm = city.elementGet()
         layout  = self.layout
         layout.alignment  = 'CENTER'
 
         # displays info about element if current selection
         # is already an element
         if elm :
-            row = layout.row()
-            row.label('%s as %s'%(ob.name,elm.className()))
-            row = layout.row()
-            row.label('known as %s'%(elm.name))
+            sel = elm.inClass(False)
+            grp = elm.asGroup()
+            otl = elm.asOutline()
+            bld = elm.asBuilder()
+            grps = otl.Childs()
+            blds = grp.Childs()
 
-            drawOutlinesTools(layout)
-            
+            # display info about selection
+            if drawExpand(layout,'outline : %s'%(otl.objectName()),'otl') :
+                box = layout.box()
+                row = box.row()
+                row.label( text = 'element name : %s'%(otl.name) )
+                row = box.row()
+                row.label( text = 'contains %s group%s'%(len(grps),'s' if len(grps) > 1 else '' ) )
+
+            if drawExpand(layout,'group : %s'%(grp.name),'grp') :
+                box = layout.box()
+                row = box.row()
+                row.label( text = 'builder : %s'%(grp.collection) )
+                row = box.row()
+                row.label( text = 'contains %s object%s :'%(len(blds),'s' if len(blds) > 1 else '' ) )
+                for bld in blds :
+                    row = box.row()
+                    row.label( text = '%s %s %s'%(bld.name, bld.objectName(), bld.className()) )
+
             row = layout.row()
-            row.label('Redefine Selected as :')
+            row.label( text = 'active object is %s (%s)'%(sel.name, sel.bc_element), icon = 'TRIA_RIGHT')
+
+            ## operations
+            box = layout.box()
+
+            # request and info message
+            if city.ui.outlines_tabs_ops == 'outline' :
+                act = city.ui.outline_ops
+                if act == 'remove_otl' : info = 'remove %s'%(otl.name)
+                elif act == 'stack' : info = 'stack a %s builder over %s'%(wm.city_builders_dropdown,otl.name)
+                if act not in ['remove_otl'] : display_builder = True
+                else : display_builder = False
+
+            elif city.ui.outlines_tabs_ops == 'group' :
+                act = city.ui.group_ops
+                if act == 'add_grp' : info = 'add a %s builder group'%(wm.city_builders_dropdown)
+                elif act == 'replace' : info = 'replace group %s by %s'%(grp.name,wm.city_builders_dropdown)
+                elif act == 'remove_grp' : info = 'remove group %s'%(grp.name)
+                if act not in ['remove_grp'] : display_builder = True
+                else : display_builder = False
+
+            # outline / group operations (tabs)
+            row = box.row(align=True)
+            row.scale_y = 1.3
+            row.prop_enum(city.ui,'outlines_tabs_ops','outline')
+            row.prop_enum(city.ui,'outlines_tabs_ops','group')
+            split = box.split(percentage=0.33)
+
+            # column 1 : operations
+            if city.ui.outlines_tabs_ops == 'outline' :
+                col = split.column(align=True)
+                col.props_enum(city.ui,'outline_ops')
+                drawEditButton(col,elm)
+            elif city.ui.outlines_tabs_ops == 'group' :
+                col = split.column(align=True)
+                col.props_enum(city.ui,'group_ops')
+
+            # column 2 : options for this operation
+            col = split.column(align=True)
+            if display_builder : col.prop(wm,'city_builders_dropdown',text='')
+            if act in ['remove_grp','remove_otl'] :
+                # would be cool to have checkboxes with enum..
+                # col.prop(city.ui,'remove_options',text='text',expand=True,toggle=True,index=-1)
+                # col.props_enum(city.ui,'remove_options')
+                col.prop(city.ui,'elm_obj')
+                col.prop(city.ui,'elm_only')
+                col.prop(city.ui,'obj_only')
+                col.separator()
+                col2 = col.column(align=True)
+                col2.active = False
+                col2.prop(city.ui,'remove_options_childs')
+
+                if city.ui.elm_obj : options = 'elm_obj'
+                elif city.ui.elm_only : options = 'elm_only'
+                else: options = 'obj_only'
+                options2 = city.ui.remove_options_childs
+
+            else :
+                options = True
+                options2 = True
+
+            # info about operation
+            infobox = box.box()
+            row = infobox.row()
+            row.alignment = 'CENTER'
+            row.active = False
+            row.label(text = info)
+
+            # update
+            row = box.row(align=True)
+            row.scale_y = 2
+            row.operator('city.methods',text = 'Update',icon='FILE_TICK').action='%s selected %s %s %s'%(act,wm.city_builders_dropdown,options,options2)
+
+            #row = layout.row()
+            #row.operator('city.methods',text = 'Redefine the selection',icon='FILE_TICK').action='add selected %s'%wm.city_builders_dropdown
+            #row = layout.row()
+            #row.operator('city.methods',text = 'stack over the selection',icon='FILE_TICK').action='stack selected %s'%wm.city_builders_dropdown
+
+    #row.operator('city.methods',text = 'Stack a %s'%wm.city_builders_dropdown).action='stack selected %s'%wm.city_builders_dropdown
+   # row.operator('city.methods',text = 'Stack a %s'%wm.city_builders_dropdown).action='stack selected %s'%wm.city_builders_dropdown
+
 
         # add new element to create from the selected outline
         # or an existing one to change
         else :
-            row = layout.row()
+            row = layout.row(align=True)
             row.label('Define Selected as :')
-        row = layout.row()
-        row.prop(wm,'city_builders_dropdown',text='')
-        row.operator('city.method',text = '',icon='FILE_TICK').action='add selected %s'%wm.city_builders_dropdown
-
+            row = layout.row()
+            row.prop(wm,'city_builders_dropdown',text='')
+            row.operator('city.methods',text = '',icon='FILE_TICK').action='add selected %s'%wm.city_builders_dropdown
+            row = layout.row()
+            row.label('Add as empty outline :')
+            row.operator('city.methods',text = '',icon='FILE_TICK').action='add selected'
+'''
 ####################################################
 ## the Element Selector panel (OBJECT MODE)
 ####################################################
@@ -307,17 +597,20 @@ class BC_selector_panel(bpy.types.Panel) :
     bl_region_type = 'TOOLS'
     bl_idname = 'select_ops'
 
-    @classmethod
-    def poll(self,context) :
-        return pollSelector(context,'OBJECT')
+    #@classmethod
+    #def poll(self,context) :
+    #    return pollSelector(context,'OBJECT')
 
     def draw_header(self, context):
         city = bpy.context.scene.city
-        elm, otl = city.elementGet()
+
         layout = self.layout
         row = layout.row(align = True)
-        if otl and ( otl.parent != '' or otl.childs != '' ) :
-            drawElementSelector(layout,otl)
+        elm, grp, otl = city.elementGet('active',True)
+        if elm :
+            #if elm.className() == 'outlines' and len(elm.Childs()) == 1 : elm = elm.Childs(0)
+            if ( otl.parent != '' or grp.childs != '' ) :
+                drawElementSelector(layout,elm)
         icn = drawHeader(self,'selector')
         row.label(icon = icn)
 
@@ -327,15 +620,14 @@ class BC_selector_panel(bpy.types.Panel) :
         wm = bpy.context.window_manager
         city = scene.city
         ob = bpy.context.active_object
-        elm, otl = city.elementGet()
+        elm = city.elementGet()
         layout  = self.layout
         layout.alignment  = 'CENTER'
-        if otl :
-            row = layout.row()
-            row.operator( "city.selector",text='Edit Outline', icon = 'OUTLINER_OB_MESH' ).action='%s edit'%otl.name
+        if elm :
             # generic selection tool here
             # select this builder in selected
-
+            pass
+'''
 def register() :
     bpy.utils.register_class(OP_BC_Selector)
     bpy.utils.register_class(BC_main_panel)

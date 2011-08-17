@@ -29,7 +29,7 @@ def libraryGet(request) :
 
 def objectAppend(otl,request,c) :
     otl = otl.asOutline()
-    bld = otl.peer()
+    #bld = otl.asBuilder()
     city = bpy.context.scene.city
     scale = bpy.context.scene.unit_settings.scale_length
     otlscale = otl.object().scale
@@ -57,7 +57,7 @@ def objectAppend(otl,request,c) :
     # WHEN GROUP IS LINKED (the group itself is an ob)
     bpy.ops.object.group_instance_add(group = group.name)
     obnew = bpy.context.active_object
-    obnew.name = bld.name + '.' + obnew.name.split('.')[0]
+    #obnew.name = bld.name + '.' + obnew.name.split('.')[0]
     obnew.location = metersToBu([c])[0]
     obnew.scale[0] = obnew.scale[0] / scale / otlscale[0]
     obnew.scale[1] = obnew.scale[1] / scale / otlscale[1]

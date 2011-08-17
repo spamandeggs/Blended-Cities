@@ -27,7 +27,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
     bc_element = 'building'
 
     #name = bpy.props.StringProperty()
-    attached = bpy.props.StringProperty()   # the perimeter object
+    parent = bpy.props.StringProperty() #  name of the group it belongs to
     inherit = bpy.props.BoolProperty(default=False,update=updateBuild)
     floorNumber = bpy.props.IntProperty(
         default = 3,
@@ -61,30 +61,35 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         max=1.0,
         update=updateBuild
         )
+
     materialslots = ['floor','inter','roof','wall']
-    materials = ['floor','inter']
+    mat_floor = {
+        'diffuse_color' : (0.846, 0.879, 1.0)
+     }
+    mat_inter = {
+        'diffuse_color' : (0.7, 0.727, 0.827)
+     }
+    mat_roof = {
+        'diffuse_color' : (0.068, 0.061, 0.083)
+     }
+    mat_wall = {
+        'diffuse_color' : (1.674, 1.739, 1.977)
+     }
 
     ## every builder class must have a function named build().
     # this is were the shape attached to the outline is built
-    def build(self,refreshData=True) :
-        otl = self.peer()
-        #print('** build() %s (outline %s)'%(self.name,otl.name))
+    def build(self,data) :
 
         verts = []
         edges = []
         faces = []
-        matslots = ['floor','inter','roof','wall']
+        matslots = []
         mats  = []
         mat_floor = 0
         mat_inter = 1
-        mat_roof = 2
-        mat_wall = 3
+        mat_roof  = 2
+        mat_wall  = 3
 
-        if refreshData :
-            print('ask for data read')
-            otl.dataRead()
-
-        data = otl.dataGet('all')
         #for k,v in data.items() :
         #    print('%s :\n%s'%(k,v))
         perimeter = data['perimeters']
@@ -213,54 +218,74 @@ class BC_buildings_panel(bpy.types.Panel) :
     def draw(self, context):
         city = bpy.context.scene.city
         scene  = bpy.context.scene
+        ob = bpy.context.active_object
 
         # either the building or its outline is selected : lookup
-        building, otl = city.elementGet(bpy.context.active_object)
+        elm, grp, otl = city.elementGet('active',True)
+        building = grp.asBuilder()
 
         layout  = self.layout
         layout.alignment  = 'CENTER'
 
-        drawElementSelector(layout,otl)
+        #  TABS
+        row = layout.row(align=True)
+        row.scale_y = 1.3
+        row.prop_enum(city.ui,'builder_tabs','builder')
+        row.prop_enum(city.ui,'builder_tabs','materials')
+        if city.ui.builder_tabs == 'builder' :
 
-        row = layout.row()
-        row.label(text = 'Name : %s / %s'%(building.objectName(),building.name))
+            row = layout.row()
+            row.label(text = 'Name : %s / %s'%(building.objectName(),building.name))
 
-        row = layout.row()
-        row.label(text = 'Floor Number:')
-        row.prop(building,'floorNumber')
+            row = layout.row()
+            #row.label(text = 'Floor Number:')
+            #row.props_enum(bpy.data,'materials')
+            #row.template_ID(ob, "active_material", new="material.new")
 
-        row = layout.row()
-        row.label(text = 'Build First Floor :')
-        row.prop(building,'firstFloor')
+            row = layout.row()
+            row.label(text = 'Floor Number:')
+            row.prop(building,'floorNumber')
 
-        row = layout.row()
-        row.label(text = 'Inherit Values :')
-        row.prop(building,'inherit')
+            row = layout.row()
+            row.label(text = 'Build First Floor :')
+            row.prop(building,'firstFloor')
 
-        if building.inherit : ena = False
-        else : ena = True
+            row = layout.row()
+            row.label(text = 'Inherit Values :')
+            row.prop(building,'inherit')
 
-        row = layout.row()
-        row.active = ena
-        row.label(text = 'Floor Height :')
-        row.prop(building,'floorHeight')
+            if building.inherit : ena = False
+            else : ena = True
 
-        row = layout.row()
-        row.active = building.firstFloor
-        row.label(text = '1st Floor Height :')
-        row.prop(building,'firstFloorHeight')
+            row = layout.row()
+            row.active = ena
+            row.label(text = 'Floor Height :')
+            row.prop(building,'floorHeight')
 
-        row = layout.row()
-        row.active = ena
-        row.label(text = 'Inter Floor Height :')
-        row.prop(building,'interFloorHeight')
+            row = layout.row()
+            row.active = building.firstFloor
+            row.label(text = '1st Floor Height :')
+            row.prop(building,'firstFloorHeight')
 
-        row = layout.row()
-        row.active = ena
-        row.label(text = 'Roof Height :')
-        row.prop(building,'roofHeight')
+            row = layout.row()
+            row.active = ena
+            row.label(text = 'Inter Floor Height :')
+            row.prop(building,'interFloorHeight')
 
-        row = layout.row()
-        row.active = True
-        row.label(text = 'lines are walls :')
-        row.prop(building,'linesAsWall')
+            row = layout.row()
+            row.active = ena
+            row.label(text = 'Roof Height :')
+            row.prop(building,'roofHeight')
+
+            row = layout.row()
+            row.active = True
+            row.label(text = 'lines are walls :')
+            row.prop(building,'linesAsWall')
+
+        if city.ui.builder_tabs == 'materials' :
+            drawBuilderMaterials(layout,building)
+
+            
+            
+            
+            

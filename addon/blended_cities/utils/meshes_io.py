@@ -269,7 +269,7 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
                 mat = bpy.data.materials.new(name=matname)
                 mat.diffuse_color=( random.uniform(0.0,1.0),random.uniform(0.0,1.0),random.uniform(0.0,1.0))
                 mat.use_fake_user = True
-                warn.append('Created a missing material : %s'%matname)
+                warn.append('Created missing material : %s'%matname)
             else :
                 mat = bpy.data.materials[matname]
             mesh.materials.append(mat)
@@ -295,15 +295,35 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
         bpy.context.scene.objects.link(ob)
     return ob
  
+def materialsCheck(bld) :
+    if hasattr(bld,'materialslots') == False :
+        builderclass = eval('bpy.types.%s'%(bld.__class__.__name__))
+        builderclass.materialslots=[bld.className()]
+
+    matslots = bld.materialslots
+    if len(matslots) > 0 :
+        for matname in matslots :
+            if matname not in bpy.data.materials :
+                mat = bpy.data.materials.new(name=matname)
+                mat.use_fake_user = True
+                if hasattr(bld,'mat_%s'%(matname)) :
+                    method = 'defined in builder'
+                    matdef = eval('bld.mat_%s'%(matname))
+                    mat.diffuse_color = matdef['diffuse_color']
+                else :
+                    method = 'random'
+                    mat.diffuse_color=( random.uniform(0.0,1.0),random.uniform(0.0,1.0),random.uniform(0.0,1.0))
+                dprint('Created missing material %s (%s)'%(matname,method))
+
+
 
 def updateChildHeight(otl,height) :
     print('** update childs of %s : %s'%(otl.name,otl.childs ))
     city = bpy.context.scene.city
-    childs=otl.childsGet()
-    for childname in childs :
-        print(' . %s'%childname)
+    for otl_child in otl.Childs() :
+        print(' . %s'%otl_child.name)
         #verts, edges, edgesW , bounds = readMeshMap(childname,True,1)
-        otl_child = city.outlines[childname]
+        #otl_child = city.outlines[child.name]
         # force re-read of data
         otl_child.dataRead()
         data = otl_child.dataGet()

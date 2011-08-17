@@ -13,7 +13,7 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
     bc_element = 'sidewalk'
 
     #name = bpy.props.StringProperty()
-    attached = bpy.props.StringProperty()   # the perimeter object
+    parent = bpy.props.StringProperty() #  name of the group it belongs to
     blockHeight = bpy.props.FloatProperty(
         default = 0.2,
         min=0.1,
@@ -30,22 +30,14 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
     materials = ['floor','inter']
 
 
-    def build(self,refreshData=True) :
-
-        city = bpy.context.scene.city
-        otl = self.peer()
-
+    def build(self,data) :
         # the objects generated here will be contained in :
         elements = []
+        outlines = []
 
         matslots = ['floor','inter'] 
         mat_floor = 0
         mat_inter = 1
-
-        if refreshData :
-            print('refresh data')
-            print(otl.dataRead())
-        perimeters = otl.dataGet()
 
         verts = []
         faces = []
@@ -53,6 +45,8 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
 
         fof = 0
         z = self.blockHeight
+        perimeters = data['perimeters']
+
         for perimeter in perimeters :
             fpf = len(perimeter)
             ground = []
@@ -65,15 +59,14 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
             faces.extend( geo.fill(verts[-fpf:],fof+fpf) )
             fof += fpf*2
 
-            #outline_verts = []
-            #outline_verts.extend(ground)
+            # for each sidewalk block, add an outline on it
             outline_verts = polyIn(ground,-self.sidewalkWidth,'coord')
-            #print('polyin: %s'%pol)
             outline_edges = edgesLoop(0, len(outline_verts))
-            elements.append( ['outline', outline_verts, outline_edges, [], [], [] ] )
+            outlines.append( ['outline', outline_verts, outline_edges, [], [], [] ] )
 
         sidewalks = [ verts, [], faces, [], [] ]
         elements.append(sidewalks)
+        elements.extend(outlines)
 
         return elements
 
@@ -102,7 +95,9 @@ class BC_sidewalks_panel(bpy.types.Panel) :
         scene  = bpy.context.scene
         ob = bpy.context.active_object
         # either the building or its outline is selected : lookup
-        sdw, otl = city.elementGet(ob)
+        #sdw, otl = city.elementGet(ob)
+        elm, grp, otl = city.elementGet('active',True)
+        sdw = grp.asBuilder()
 
         layout  = self.layout
         layout.alignment  = 'CENTER'

@@ -40,7 +40,7 @@ else :
     print('\nNOT IMPLEMENTED :\n')
     poo()
  
-
+    
 def register() :
         # For now they need to be registered first due to: http://wiki.blender.org/index.php/Dev:2.5/Py/API/Overview#Manipulating-Classes
         # Maybe later we find another solution to be able to register builders later too?
@@ -50,18 +50,26 @@ def register() :
         #operators :
         bpy.utils.register_class(OP_BC_cityMethods)
         # ui
+        bpy.utils.register_class(WM_OT_Panel_expand)
+        bpy.utils.register_class(BC_City_ui)
         bpy.utils.register_class(OP_BC_Selector)
         bpy.utils.register_class(BC_main_panel)
         bpy.utils.register_class(BC_outlines_panel)
-        bpy.utils.register_class(BC_selector_panel)
+        #bpy.utils.register_class(BC_selector_panel)
         # class_main
+        bpy.utils.register_class(BC_groups)
         bpy.utils.register_class(BC_builders)
         bpy.utils.register_class(BC_outlines)
         bpy.utils.register_class(BC_elements)
         bpy.utils.register_class(BlendedCities)
 
         bpy.types.Scene.city = bpy.props.PointerProperty(type=BlendedCities)
+        #bpy.types.Scene.city.ui = bpy.props.PointerProperty(type=BC_City_ui)
         BlendedCities.builders = bpy.props.PointerProperty(type=BC_builders)
+        items=[('niet','niet','')]
+        for m in bpy.data.materials :
+                items.append( (m.name,m.name,'') )
+        BC_City_ui.matmenu = bpy.props.EnumProperty(items=items)
 
 def unregister() :
     print('\n. %s addon unregister\n'% __name__)
@@ -84,7 +92,9 @@ def unregister() :
     bpy.utils.unregister_class(OP_BC_Selector)
     bpy.utils.unregister_class(BC_main_panel)
     bpy.utils.unregister_class(BC_outlines_panel)
-    bpy.utils.unregister_class(BC_selector_panel)
+    #bpy.utils.unregister_class(BC_selector_panel)
+    bpy.utils.unregister_class(WM_OT_Panel_expand)
+    bpy.utils.unregister_class(BC_City_ui)
 
     # operators
     bpy.utils.unregister_class(OP_BC_cityMethods)

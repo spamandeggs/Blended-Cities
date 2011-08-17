@@ -41,6 +41,7 @@ def update_builders_dropdown():
         class_selector.append( (cl.bc_collection,cl.bc_label,cl.bc_description) )
     bpy.types.WindowManager.city_builders_dropdown = bpy.props.EnumProperty( items = class_selector, name = "Builders", description = "" )
 
+
 def register_default_builders():
     '''seek the builders folders for existing builders classes (and their gui)'''
     # seek and register
