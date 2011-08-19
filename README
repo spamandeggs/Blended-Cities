@@ -3,10 +3,15 @@ continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
 2011/08/19
+. corrected modal, remove objects, and remove objects and tags buttons
+. corrected coordinates stuff : mixed advantages of local and global coords use for builders
+. detach() keep the previous parent matrix. now equivalent to a 'clear parent/keep transformation'
+
+2011/08/19
 more methods. begun stack rewrite
 . otl.objectAtttach()
 . grp.replace() method
-. grp.stack() method (1st steps)
+. grp.stack() method (1st step)
 
 2011/08/17
 important concept changes

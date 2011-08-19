@@ -383,10 +383,10 @@ def drawMainbuildingsTool(layout) :
     row.operator('city.methods',text = 'List Elements').action = 'list all'
     
     row = layout.row()
-    row.operator('city.methods',text = 'Remove objects').action = 'remove all all False'
+    row.operator('city.methods',text = 'Remove objects').action = 'remove_otl all all obj_only True'
 
     row = layout.row()
-    row.operator('city.methods',text = 'Remove obj. and tags').action = 'remove all all True'
+    row.operator('city.methods',text = 'Remove obj. and tags').action = 'remove_otl all all elm_obj True'
 
 def drawOutlinesTools(layout) :
     wm = bpy.context.window_manager

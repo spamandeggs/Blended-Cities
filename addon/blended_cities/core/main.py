@@ -378,9 +378,12 @@ class BlendedCities(bpy.types.PropertyGroup) :
             if bpy.context.mode == 'OBJECT' and \
             len(bpy.context.selected_objects) == 1 and \
             type(bpy.context.active_object.data) == bpy.types.Mesh :
-                elm,otl = self.elementGet(bpy.context.active_object)
-                #if elm : elm.build(True)
-                if elm : self.groups.build(elm)
+                elm, grp, otl = self.elementGet('active',True)
+                if elm :
+                    if elm.className(False) == 'outlines' :
+                        otl.build()
+                    else :
+                        grp.build()
             '''
                 if elm.className() == 'buildings' or elm.peer().className() == 'buildings' :
                     dprint('rebuild')

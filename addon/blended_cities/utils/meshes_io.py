@@ -25,8 +25,14 @@ def outlineRead(obsource) :
 
             # RETRIEVING
 
-            mat=Matrix(obsource.matrix_local)
-            #mat=Matrix(obsource.matrix_world)
+            mat_ori = Matrix(obsource.matrix_world).copy()
+            loc, rot, scale = mat_ori.decompose()
+            mat = Matrix()
+            mat[0][0] *= scale[0]
+            mat[1][1] *= scale[1]
+            mat[2][2] *= scale[2]
+            mat *= rot.to_matrix().to_4x4()
+
             if len(obsource.modifiers) :
                 sce = bpy.context.scene
                 source = obsource.to_mesh(sce, True, 'PREVIEW')
@@ -40,7 +46,7 @@ def outlineRead(obsource) :
 
             # apply world to verts and round them a bit
             for vi,v in enumerate(verts) :
-                x,y,z = v# * mat # for global
+                x,y,z = v * mat #  as global coords
                 x = int(x * 1000000) / 1000000
                 y = int(y * 1000000) / 1000000
                 z = int(z * 1000000) / 1000000
@@ -97,7 +103,7 @@ def outlineRead(obsource) :
             #for vi,l in enumerate(lst) :
             #   if l != -1 : print(verts[vi])
 
-            return mat, perims, lines, dots
+            return mat_ori, perims, lines, dots
 
 
 def readLine(pvi,vi,verts,neigh) :

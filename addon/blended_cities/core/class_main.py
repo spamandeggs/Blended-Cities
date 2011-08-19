@@ -397,7 +397,10 @@ class BC_elements(bpy.types.PropertyGroup) :
             if ob.name == self.name :
                 ob.name = ob.name.split('.')[0] + '_free.' + ob.name.split('.')[1]
             if type(ob.data) != None : ob.data.name = ob.name
+            objectLock(ob,False)
+            mat = ob.matrix_world.copy()
             ob.parent = None
+            ob.matrix_world = mat
             self.pointer = '-1'
 
     ###############################
@@ -680,7 +683,9 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
         return grp
 
 
-
+    def build(self) :
+        for grp in self.Childs() :
+            grp.build()
 
 # handles the build() requests
 class BC_groups(BC_elements,bpy.types.PropertyGroup) :
@@ -694,8 +699,9 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
 
     def build(self,refreshData=True) :
         city = bpy.context.scene.city
-        if self.className() != 'groups' : grp = self.Parent()
-        else : grp = self
+        #if self.className() != 'groups' : grp = self.Parent()
+        #else : grp = self
+        grp = self
         print('** build %s'%grp.name)
         otl = grp.Parent()
         bld = grp.Childs(0)
@@ -705,11 +711,16 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
             otl.dataRead()
     
         data = otl.dataGet('all')
-        #elm = bld.asElement()
-        # when the builder has several attached object to it, remove them all before
-        # else the single generated object will be reused or created
-        #if bld.asElement().pointer not in bpy.data.groups :
-        #    bld.objectRemove()
+
+        mat_ori = data['matrix'].copy()
+        mat_ori.invert()
+        loc, rot, scale = mat_ori.decompose()
+        mat = Matrix()
+        mat[0][0] *= scale[0]
+        mat[1][1] *= scale[1]
+        mat[2][2] *= scale[2]
+        mat *= rot.to_matrix().to_4x4()
+
         materialsCheck(bld)
         objs = bld.build(data)
         print('  received %s objects :'%len(objs))
@@ -724,6 +735,7 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                 # a generated mesh
                 if type(ob[0]) == list :
                     verts, edges, faces, matslots, mats = ob
+                    for vi,v in enumerate(verts) : verts[vi] *= mat
                     matslots = bld.materialslots
                     ob = objectBuild(name, verts, edges, faces, matslots, mats)
                     ob.name = name
@@ -731,6 +743,7 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                 # a generated outline
                 elif type(ob[0]) == str and ob[0] == 'outline' :
                     dummy, verts, edges, faces, matslots, mats = ob
+                    for vi,v in enumerate(verts) : verts[vi] *= mat
                     matslots = bld.materialslots
                     ob = objectBuild(name, verts, edges, faces, matslots, mats)
                     builder = 'outlines'
@@ -739,7 +752,7 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                 # an object from the library
                 elif type(ob[0]) == str :
                     request, coord = ob
-                    ob = library.objectAppend(otl, request, coord)
+                    ob = library.objectAppend(otl, request, coord*mat)
                     elm = city.elementGet(name)
                     if elm : elm.objectRemove()
                     ob.name = name
