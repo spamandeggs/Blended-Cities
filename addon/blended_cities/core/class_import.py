@@ -37,6 +37,7 @@ def unregister_builder(builderClass,uiClass):
 def update_builders_dropdown():
     global builders_list
     class_selector = []
+    #class_selector = [ ('nones','Empty outline','store only the outline geometry') ]
     for cl in builders_list :
         class_selector.append( (cl.bc_collection,cl.bc_label,cl.bc_description) )
     bpy.types.WindowManager.city_builders_dropdown = bpy.props.EnumProperty( items = class_selector, name = "Builders", description = "" )

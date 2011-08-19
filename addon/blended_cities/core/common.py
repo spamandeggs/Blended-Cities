@@ -19,14 +19,20 @@ def dprint(str,level=1) :
     if level <= city.debuglevel :
         print(str)
 
-def display(otl) :
-                for grp in otl.Childs() :
-                    print('{:^75}\n{:35}{:35}'.format('-'*75,' GROUP   : %s'%(grp.name),'builder : %s'%(grp.collection)))
-                    print('{:35}{:35}'.format(' OUTLINE : %s'%(otl.name),'object  : %s'%(otl.objectName())))
-                    print('{:^75}\n{:^25}|{:^25}|{:^25}\n{:^75}'.format('-'*75,'element name','object name','collection','-'*75))
-                    for child in grp.Childs() :
-                        print('{:^25}|{:^25}|{:^25}'.format(child.name,child.objectName(),child.className()))
-                    print('\n')
+def display(elm,arg='outline') :
+    if arg == 'outline' :
+        otl = elm
+        elements = elm.Childs()
+    else :
+        otl = elm.Parent()
+        elements = [elm]
+    for grp in elements :
+        print('{:^75}\n{:35}{:35}'.format('-'*75,' GROUP   : %s'%(grp.name),'builder : %s'%(grp.collection)))
+        print('{:35}{:35}'.format(' OUTLINE : %s'%(otl.name),'object  : %s'%(otl.objectName())))
+        print('{:^75}\n{:^25}|{:^25}|{:^25}\n{:^75}'.format('-'*75,'element name','object name','collection','-'*75))
+        for child in grp.Childs() :
+            print('{:^25}|{:^25}|{:^25}'.format(child.name,child.objectName(),child.className()))
+        print('\n')
 
 ## remove an object from blender internal
 def wipeOutObject(ob,and_data=True) :

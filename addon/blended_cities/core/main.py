@@ -146,12 +146,9 @@ class BlendedCities(bpy.types.PropertyGroup) :
                 # don't build if child element, the caller function will handle that, 
                 # depending on other factors (object parenting ? build above existing ? deform outline ? etc)
                 # it depends on the builder methods and where the caller want to locate the child 
-                if build_it : #otl_ob :
-                    #new.build()
+                if build_it :
                     grp.build()
-                #else :
-                #    otl.attached = builder if builder else 'none'
-                #    new = False
+
                 new_elms.append([grp, otl])
                 dprint('** element add done')
         return new_elms
@@ -197,15 +194,45 @@ class BlendedCities(bpy.types.PropertyGroup) :
         objs = returnObject(what)
         del_grps = []
         for ob in objs :
-            print('object %s'%(ob.name))
+            dprint('object %s'%(ob.name))
             elm = self.elementGet(ob)
             if elm.className(False) != 'outlines' :
                 grp = elm.asGroup()
-                print('remove %s'%(grp.name))
+                dprint('  remove group %s'%(grp.name))
                 del_grps.append(grp.name)
                 grp.remove(rem_self, rem_elements, rem_objects, rem_childs)
         return del_grps
 
+
+    def groupReplace(self, what='selected',builder='nones'):
+        dprint('* city.groupReplace')
+        objs = returnObject(what)
+        rep_grps = []
+        for ob in objs :
+            dprint('object %s'%(ob.name))
+            elm = self.elementGet(ob)
+            if elm.className(False) != 'outlines' :
+                grp = elm.asGroup()
+                dprint('replace %s'%(grp.name))
+                grp.replace(builder)
+                rep_grps.append(grp)
+        return rep_grps
+
+    def groupStack(self,what='selected',builder='nones'):
+        dprint('* city.groupStack')
+        objs = returnObject(what)
+        new_grps = []
+        for ob in objs :
+            print('object %s'%(ob.name))
+            elm = self.elementGet(ob)
+            if elm.className(False) != 'outlines' :
+                grp = elm.asGroup()
+                print(grp.name,grp.className(False))
+                newgrp = grp.stack(builder=builder)
+                print('  stacked group %s over %s'%(newgrp.name,grp.name))
+                new_grps.append(newgrp)
+                newgrp.build()
+        return new_grps
 
     ## remove selected outlines / parent outlines of selected objects
     # remove an existing element given an object or an element of any kind

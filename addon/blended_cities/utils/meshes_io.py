@@ -297,6 +297,7 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
  
 def materialsCheck(bld) :
     if hasattr(bld,'materialslots') == False :
+        #print(bld.__class__.__name__)
         builderclass = eval('bpy.types.%s'%(bld.__class__.__name__))
         builderclass.materialslots=[bld.className()]
 
