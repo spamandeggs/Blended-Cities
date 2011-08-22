@@ -19,20 +19,35 @@ def dprint(str,level=1) :
     if level <= city.debuglevel :
         print(str)
 
-def display(elm,arg='outline') :
+## 
+def display(elm, arg = 'outline', detail = True) :
+    detail = True
     if arg == 'outline' :
         otl = elm
         elements = elm.Childs()
     else :
         otl = elm.Parent()
         elements = [elm]
+    print('{:^77}\n{:^25}|{:^25}|{:^25}'.format('-'*77,' OUTLINE : %s'%(otl.name),'object  : %s'%(otl.objectName()),'type  : %s'%(otl.type)))
+    if otl.parent :
+        print(' parent : %s'%(otl.parent))
+    print('{:^77}\n'.format('-'*77))
     for grp in elements :
-        print('{:^75}\n{:35}{:35}'.format('-'*75,' GROUP   : %s'%(grp.name),'builder : %s'%(grp.collection)))
-        print('{:35}{:35}'.format(' OUTLINE : %s'%(otl.name),'object  : %s'%(otl.objectName())))
-        print('{:^75}\n{:^25}|{:^25}|{:^25}\n{:^75}'.format('-'*75,'element name','object name','collection','-'*75))
         for child in grp.Childs() :
-            print('{:^25}|{:^25}|{:^25}'.format(child.name,child.objectName(),child.className()))
-        print('\n')
+            if child.className() == 'outlines' :
+                otl_child = 'has child'
+                break
+        else : otl_child = ''
+        print('{:38}{:30}{:9}'.format('    GROUP : %s'%(grp.name),'builder : %s'%(grp.collection),otl_child))
+        if detail :
+            #print('{:^77}\n{:^25}|{:^25}|{:^25}\n{:^77}'.format('-'*77,'element name','object name','collection','-'*77))
+            print('\n{:^25}|{:^25}|{:^25}\n{:^77}'.format('element name','object name','collection','-'*77))
+            for child in grp.Childs() :
+                if child.className() == 'outlines' : childname = '* %s'%child.name
+                else : childname = child.name
+                print('{:^25}|{:^25}|{:^25}'.format(childname,child.objectName(),child.className()))
+            print('{:^77}\n'.format('-'*77))
+    if detail == False : print('{:^77}\n'.format('-'*77))
 
 ## remove an object from blender internal
 def wipeOutObject(ob,and_data=True) :

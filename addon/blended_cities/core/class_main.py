@@ -212,6 +212,7 @@ class BC_elements(bpy.types.PropertyGroup) :
     def ChildsName(self) :
         return self.childs.split(',')
 
+
     ## returns a child or a list of childs as element
     # @param id -1 (default) the child index. -1 for last. id > len(childs) returns last child
     # @return the element, all the elements in a list, or [] ( can be iterated directly even if None)
@@ -345,6 +346,7 @@ class BC_elements(bpy.types.PropertyGroup) :
                 sibling = outlines[siblings[(si-1)%len(siblings)]]
                 sibling.select(attached)
 
+
     # OTL and GRP
     ## add a child to an outline or a group.
     # @param childname the outline name (string)
@@ -354,6 +356,7 @@ class BC_elements(bpy.types.PropertyGroup) :
             self.childs = childname
         elif childname not in self.childs :
             self.childs += ',%s'%childname
+
 
     # OTL and GRP
     ## delete a child outline reference of this outline.
@@ -369,6 +372,7 @@ class BC_elements(bpy.types.PropertyGroup) :
         if self.childs == '' : dprint('  %s childs : none'%self.name)
         else : dprint('  %s childs : %s'%(self.name,self.childs))
 
+
     ## attach an existing object to an outline
     def objectAttach(self,object) :
         otl = self.asOutline()
@@ -382,8 +386,7 @@ class BC_elements(bpy.types.PropertyGroup) :
             otl.objectRemove()
             otl.asElement().pointer = str(ob.as_pointer())
             otl.dataRead()
-            for child in otl.Childs() :
-                child.build()
+            otl.build()
             return True
         else :
             print('object %s already attached to %s'%(ob.name,test.name))
@@ -402,6 +405,7 @@ class BC_elements(bpy.types.PropertyGroup) :
             ob.parent = None
             ob.matrix_world = mat
             self.pointer = '-1'
+
 
     ###############################
     ## OUTLINES / BUILDERS OPERATION
@@ -465,64 +469,6 @@ class BC_elements(bpy.types.PropertyGroup) :
             bpy.context.scene.city.elements.remove(ielm)
         iclass = self.index()
         selfclass.remove(iclass)
-
-
-    ## stack an element above this one
-    # @param what default False : outline of the new elm does not exist yet
-    # @param builder (default 'same') the builderclass name of the new element. if not given, stack the same builder than the current element.
-    def stack(self,what=False,builder='same') :
-        city = bpy.context.scene.city
-        bld_child, otl_child = self.childsAdd(what,builder) 
-
-        data = otl_child.dataGet('perimeters')
-        z = max(zcoords(data))
-        if bld_child :
-            z += bld_child.Parent(True).height()
-
-        for perimeter in data :
-            for vert in perimeter :
-                vert[2] = z
-
-        otl_child.dataSet(data)
-        otl_child.dataWrite()
-        otl_child.object().parent = otl_child.Parent().object()
-
-        if bld_child :
-            bld_child.inherit = True
-            # bld_child.build()
-            city.builders.build(bld_child)
-            #bld_child.object().parent = otl_child.object()
-        return bld_child, otl_child
-
-
-    ## parent a new outline to the current one
-    # @param builder (default 'same') the builderclass name of the new element. if not given, stack the same builder than the current element.
-    def childsAdd(self,what=False,builder='same',build_it=False) :
-        city = bpy.context.scene.city
-        otl_parent = self.asOutline()
-        bld_parent = self.asBuilder()
-        if builder == 'same' : builder = bld_parent.className()
-
-        # check if the given outline object is not already linked to smtg
-        go = True
-        if what :
-            elm_exist = city.elementGet(what)
-            if elm_exist :
-                go = False
-                print('elm %s already exists, abort childadd'%otl_exist.name)
-        if go :
-            [ [bld_child, otl_child] ] = city.elementAdd(what,builder,build_it)
-            otl_child.parent = otl_parent.name
-            otl_parent.childsAddName(otl_child.name)
-
-            if what :
-                otl_child.object().parent = otl_parent.object()
-            # if no outline object given, copy the data from the parent
-            else :
-                otl_child.data = otl_parent.data
-
-            return bld_child, otl_child
-        else : return False,False
 
 
 ##\brief the outlines collection
@@ -654,7 +600,7 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
             self._rem()
 
     ## add a new group to an outline
-    def groupAdd(self,builder='') :
+    def groupAdd(self,builder='',update=True) :
         if builder == '' : builder = 'nones'
         city = bpy.context.scene.city
         elmclass = city.Class(builder)
@@ -680,13 +626,26 @@ class BC_outlines(BC_elements,bpy.types.PropertyGroup) :
         bld.parent = grp.name
         bld._add()
         dprint('otl.groupAdd : main element of %s group is %s'%(grp.name,bld.name))
+        if update : grp.build()
         return grp
 
-
+    ## outline build() method
     def build(self) :
+        if self.type == 'stacked' :
+            grp = self.Parent()
+            otl = grp.Parent()
+            mat_ori = otl.object().matrix_world.copy()
+            loc, rot, otl_scale = mat_ori.decompose()
+            print('parent outline is : %s'%otl.name)
+            z = grp.height()
+            world_scale = bpy.context.scene.unit_settings.scale_length
+            z /= world_scale * otl_scale[2]
+            self.object().location = [0, 0, z]
         for grp in self.Childs() :
             grp.build()
 
+
+##\brief the groups collection
 # handles the build() requests
 class BC_groups(BC_elements,bpy.types.PropertyGroup) :
     bc_label = 'Groups'
@@ -697,12 +656,15 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
     childs = bpy.props.StringProperty(default='') # member of the group (element names separated by commas)...
     parent = bpy.props.StringProperty(default='') # an outline name. mandatory
 
-    def build(self,refreshData=True) :
+
+    ## build or update a builder group
+    def build(grp,refreshData=True) :
         city = bpy.context.scene.city
         #if self.className() != 'groups' : grp = self.Parent()
         #else : grp = self
-        grp = self
+        #grp = self
         print('** build %s'%grp.name)
+        display(grp,'group')
         otl = grp.Parent()
         bld = grp.Childs(0)
 
@@ -722,6 +684,7 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
         mat *= rot.to_matrix().to_4x4()
 
         materialsCheck(bld)
+        print(bld.name,bld.className())
         objs = bld.build(data)
         print('  received %s objects :'%len(objs))
         if len(objs) > 0 :
@@ -747,8 +710,6 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                     matslots = bld.materialslots
                     ob = objectBuild(name, verts, edges, faces, matslots, mats)
                     builder = 'outlines'
-                    #bld_child, otl_child = otl.childsAdd(ob,'nones')
-                    #otl_child.type = 'generated'
                 # an object from the library
                 elif type(ob[0]) == str :
                     request, coord = ob
@@ -765,22 +726,22 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
             objs = bpy.data.groups[grp.name].objects
             print('** removing ? %s %s'%(len(objs), len(generated)))
             if len(objs) != len(generated) :
+                print('   group : %s\n   generated : %s'%(objs, generated))
                 for ob in objs :
                     if ob not in generated :
-                        elm = city.elementGet()
+                        elm = city.elementGet(ob)
+                        dprint('stack test : %s %s %s'%(elm.name,elm.className(False),elm.asOutline().type))
                         if elm.className(False) == 'outlines' and elm.asOutline().type != 'generated' :
                             print('stacked')
                             continue
                         grp.remove(False,True,ob,False)
 
             # childs update
-            if 2==4 and hasattr(bld,'height') :
-                data = otl.dataGet('all')
-                perimeter = data['perimeters']
-                lines = data['lines']
-                zlist = zcoords(perimeter+lines)
-                height = bld.height() + max(zlist)
-                updateChildHeight(otl,height)
+            for child in grp.Childs() :
+                if child.className() == 'outlines' :
+                    #if child.type == 'stacked' :
+                    child.build()
+
         print('** end build %s'%bld.name)
 
 
@@ -804,7 +765,7 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                             child.parent = newparent
                             print(child.parent,newparent,self.parent)
                         else: #if rem_childs :
-                            child.remove(rem_self, rem_elements, rem_objects, rem_childs)
+                            child.remove(rem_elements, rem_elements, rem_objects, rem_childs)
                     else :
                         if rem_objects :
                             child.objectRemove()
@@ -831,19 +792,23 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
             self._rem()
         dprint('end group.remove')
 
+
+    ## replace this builder group by a new one
     def replace(self,builder) :
         dprint('* group.replace')
         if self.collection == builder : return False
-        self.remove(False,True,True,True,False)
-        self.Parent().childsRemoveName(self.name)
         city = bpy.context.scene.city
         elmclass = city.Class(builder)
         if elmclass == False : return False
 
-        # add the builder group
+        # remove group
+        self.remove(False,True,True,True,False)
+
+        # redefine group
+        self.Parent().childsRemoveName(self.name)
         self.nameNew(builder)
-        self.collection = builder
         self.Parent().childsAddName(self.name)
+        self.collection = builder
         gr = bpy.data.groups.new(self.name)
 
         # add a default group member in its builder class, member/group link
@@ -851,24 +816,27 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
         bld.nameNew()
         bld.parent = self.name
         bld._add()
-        self.build()
         dprint('grp.replace() : main element of %s group is %s'%(self.name,bld.name))
+        self.build()
         return self
 
-    ## stack a new group over a group
-    def stack(self,what='',builder='') :
+
+    ## stack a new or existing group over this group
+    def stack(self,what='',builder='',update=True) :
         dprint('* group.stack')
         city = bpy.context.scene.city
         # stack a new outline
         if what == '' :
+            dprint('  creating new outline')
             otl = city.outlines.add()
             otl.nameNew()
             otl._add()
             otl.data = self.Parent().data
             otl.dataWrite()
             ob = otl.object()
-        # stack an existing object
+        # stack an existing object. TODO not really tested yet
         else :
+            dprint('  use given object as outline')
             ob = returnObject(what)
             if ob != [] :
                 ob = ob[0]
@@ -883,13 +851,17 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                     otl.nameNew()
                     otl._add()
                     otl.objectAttach(ob)
-        self.objectAdd(ob,'outlines')
         otl.type = 'stacked'
-        grp = otl.groupAdd(builder)
+        self.objectAdd(ob,'outlines')
+        grp = otl.groupAdd(builder,False)
+        if update : otl.build()
+        dprint('otl parent : %s'%otl.parent)
         return grp
-        
+
+
     ## add/update the builder object of a group
     def objectAdd(self,what='active',builder='objects') :
+        dprint('* group.objectAdd')
         city = bpy.context.scene.city
         grp = self
         #self = self.asElement()
@@ -906,27 +878,29 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
             if elm == False :
                 # reuse the element with the same name
                 if ob.name in city.elements and city.elements[ob.name].pointer == '-1' :
-                    elm = city.elements[ob.name]
+                    elm = city.elements[ob.name].inClass(False)
                     print('  found %s element with no objects attached, used it'%(elm.name))
                 else :
                     # create a new element
                     elm = elmClass.add()
                     elm.name = ob.name # named by group build()
-                    elm.parent = grp.name
                     elm._add()
                     print('  added object %s as %s in the %s collection'%(ob.name,elm.name,builder))
                 elm.asElement().pointer = str(ob.as_pointer())
             else :
+                elm = elm.inClass(False)
                 print('  object %s <-> elm %s'%(ob.name,elm.name))
-
+            elm.parent = grp.name
+            dprint('  otl parent : %s'%elm.parent)
             # update the blender group
             objs = bpy.data.groups[grp.name].objects
             if ob not in objs.values() :
                 objs.link(ob)
-            print('  blender group %s member : %s'%(grp.name,bpy.data.groups[grp.name].objects.keys()))
 
             # updtate the group childs list
             grp.childsAddName(elm.name)
+            dprint('  group %s :\n    blender group members : %s'%(grp.name,bpy.data.groups[grp.name].objects.keys()))
+            dprint('    childs : %s'%(grp.childs))
 
             # parent the object
             ob.parent = otl.object()
@@ -940,9 +914,13 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
             print('grp.objectAdd : object %s not found'%(what))
 
 
-## none collection
-# used for cases when outilnes have no builder attached. its length gives the free outlines number and can list them
-# the none elm of an otl is removed when otl is attached to a real builder
+    def height(self) :
+        return self.asBuilder().height()
+
+
+##\brief the nones collection
+# used by empty outilnes with no builder attached. length of the collection gives the free outlines number.
+# the none elm of an empty otl is removed when it's attached to a real builder
 class BC_nones(BC_elements,bpy.types.PropertyGroup) :
     bc_label = 'Nones'
     bc_description = 'a null object. used to add a single outline'
@@ -951,14 +929,14 @@ class BC_nones(BC_elements,bpy.types.PropertyGroup) :
 
     parent = bpy.props.StringProperty() #  name of the group it belongs to
 
-    def build(self,dummy) :
+    def build(self,data) :
         return []
     def height(self) :
         return 0
 
 
-## object collection
-# used to store elements that come from the library, and that are used by a builder
+##\brief the objects collection
+# used to store elements that come from the library, when library calls are used by a builder
 class BC_objects(BC_elements,bpy.types.PropertyGroup) :
     bc_label = 'Objects'
     bc_description = 'a null object. used to add a single outline'
@@ -967,18 +945,19 @@ class BC_objects(BC_elements,bpy.types.PropertyGroup) :
 
     parent = bpy.props.StringProperty() #  name of the group it belongs to
 
-    def build(self,dummy) :
+    def build(self,data) :
         return []
     def height(self) :
         return 0
 
+
 bpy.utils.register_class(BC_nones)
 bpy.utils.register_class(BC_objects)
 
-##\brief the builder bpy pointer. builders are hooked there
+##\brief the builder bpy pointer. builders are hooked here
 # this will be populated with builder collections
 class BC_builders(bpy.types.PropertyGroup):
     nones = bpy.props.CollectionProperty(type=BC_nones)
     objects = bpy.props.CollectionProperty(type=BC_objects)
-# for reference
-#BC_builders = type("BC_builders", (bpy.types.PropertyGroup, ), {})
+    #  for reference :
+    # BC_builders = type("BC_builders", (bpy.types.PropertyGroup, ), {})

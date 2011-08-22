@@ -26,18 +26,15 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
         max=10.0,
         update=updateBuild
         )
-    materialslots = ['floor','inter']
-    materials = ['floor','inter']
-
+    materialslots = ['concrete']
+    mat_concrete = {
+        'diffuse_color' : (0.680, 0.705, 0.810)
+     }
 
     def build(self,data) :
         # the objects generated here will be contained in :
         elements = []
         outlines = []
-
-        matslots = ['floor','inter'] 
-        mat_floor = 0
-        mat_inter = 1
 
         verts = []
         faces = []

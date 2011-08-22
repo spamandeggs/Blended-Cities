@@ -122,7 +122,7 @@ def readLine(pvi,vi,verts,neigh) :
     if len(neigh[vi]) == 1 :  rm.append(neigh[vi][0])
     return line, rm, not(go)
 
-
+'''
 def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
     global debug
     pdeb=debug
@@ -197,7 +197,7 @@ def readMeshMap(objectSourceName,atLocation,scale,what='readall') :
         return coordsList,edgesList,edgesWList,[ [xmin,xmax], [ymin,ymax], [zmin,zmax] ]
     else :
         return Vector([xmin,ymin,0]),Vector([xmax-xmin,ymax-ymin,0])
-
+'''
 ## lock or unlock an object matrix
 # @param ob the object to lock/unlock
 # @param state True to lock, False to unlock
@@ -217,7 +217,7 @@ def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
     
     if type(elm) != str :
         obname = elm.objectName()
-        if obname == False :
+        if obname == 'not built' :
             obname = elm.name
     else : obname= elm
 

@@ -154,25 +154,6 @@ class BlendedCities(bpy.types.PropertyGroup) :
         return new_elms
 
 
-    ## stack several new elements on different outlines in a row
-    # @param what a list of object or the keyword 'selected'
-    # @builder the name of the builder class
-    # @return a list of [ bld, otl ] for each builded object (the new element in its class, and its outline)
-    def elementStack(self,what='selected',builder='buildings'):
-        if what == 'selected' :
-            parent_objects = bpy.context.selected_objects
-        else :
-            otl_objects = what
-        new_elms = []
-        for object in parent_objects :
-            if type(object.data) == bpy.types.Mesh :
-                bld_parent, otl_parent = self.elementGet(object)
-                print('stacking over %s'%bld_parent.name)
-                bld_child, otl_child = bld_parent.stack(False,builder)
-                new_elms.append([bld_child, otl_child])
-        return new_elms
-
-
     def groupAdd(self,what='selected',builder='nones'):
         dprint('* city.groupAdd')
         objs = returnObject(what)
@@ -185,7 +166,6 @@ class BlendedCities(bpy.types.PropertyGroup) :
                 grp = otl.groupAdd(builder)
                 print('  added group %s'%(grp.name))
                 new_grps.append(grp.name)
-                grp.build()
         return new_grps
 
 
@@ -218,20 +198,24 @@ class BlendedCities(bpy.types.PropertyGroup) :
                 rep_grps.append(grp)
         return rep_grps
 
+
+    ## stack a new outline on each selected group
+    # @param what a list of object or the keyword 'selected'
+    # @builder the name of the builder class
+    # @return a list of new group
     def groupStack(self,what='selected',builder='nones'):
         dprint('* city.groupStack')
         objs = returnObject(what)
         new_grps = []
         for ob in objs :
-            print('object %s'%(ob.name))
+            #print('object %s'%(ob.name))
             elm = self.elementGet(ob)
             if elm.className(False) != 'outlines' :
                 grp = elm.asGroup()
-                print(grp.name,grp.className(False))
+                print('  stacking over %s :'%(grp.name))
                 newgrp = grp.stack(builder=builder)
-                print('  stacked group %s over %s'%(newgrp.name,grp.name))
                 new_grps.append(newgrp)
-                newgrp.build()
+                #newgrp.build()
         return new_grps
 
     ## remove selected outlines / parent outlines of selected objects
@@ -313,46 +297,27 @@ class BlendedCities(bpy.types.PropertyGroup) :
         return objs
 
     ## list all or part of the elements, filters, etc.., show parented element
-    # should be able to generate a selection of elm in the ui,
-    # in a search panel (TO COMPLETE)
+    # TODO should be able to generate a selection of elm in the ui,
+    # in a search panel
     def list(self,what='all', builder='all') :
-        elm_as_group = 0
+
         print('element list :\n--------------')
-        def childsIter(otl,tab) :
-            elm = otl.Childs(0)
-            while elm :
-                bld = elm.asBuilder()
-                objs = bld.object()
-
-                if type(objs) == bpy.types.Object : obn = 'built'
-                elif objs : obn = 'group of %s objects'%(len(objs))
-                else : obn = 'not built'
-                print('%s : %s'%(bld.name,obn))
-                if 'group' in obn :
-                    for ob in objs : print('    %s'%ob.name)
-                childsIter(elm,tab + '    ')
-                elm = elm.Next()
-
+        def childsIter(otl) :
+            display(otl)
+            for grp in otl.Childs() :
+                for child in grp.Childs() :
+                    if child.className() == 'outlines' :
+                        childsIter(child)
         for otl in self.outlines :
             if otl.parent : continue
-            print('* %s :\n'%otl.name)
-            display(otl)
-            '''
-            bld = otl.asBuilder()
-            objs = bld.object()
-            
-            if type(objs) == bpy.types.Object : obn = 'built'
-            elif objs : obn = 'group of %s objects'%(len(objs))
-            else : obn = 'not built'
-            print('%s : %s'%(bld.name,obn))
-            if 'group' in obn :
-                for ob in objs : print('    %s'%ob.name)
-            childsIter(otl,'    ')
-            '''
+            childsIter(otl)
+
+        # inconsistency check
         print('collections check :\n-------')
-        total = len(self.elements) - elm_as_group
+        total = len(self.elements)
         print('%s elements :'%(total))
         print('outlines : %s'%(len(self.outlines)))
+        print('groups   : %s'%(len(self.groups)))
         count = len(self.outlines)
         bldclass = builderClass()
         for buildname,buildclass in bldclass :

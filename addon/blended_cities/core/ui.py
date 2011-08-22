@@ -20,9 +20,9 @@ class OP_BC_cityMethods(bpy.types.Operator) :
 
     def execute(self, context) :
         city = bpy.context.scene.city
-        act = objs = builder = opt1 = opt2 =''
+        act = objs = builder = opt1 = opt2 = ''
         args = self.action.split(' ')
-        if len(args) == 1 : act = args[0]
+        if len(args)   == 1 : act = args[0]
         elif len(args) == 2 : act, objs = args
         elif len(args) == 3 : act, objs, builder = args
         elif len(args) == 4 : act, objs, builder, opt1 = args
@@ -43,8 +43,7 @@ class OP_BC_cityMethods(bpy.types.Operator) :
             city.list(objs,builder)
             return {'FINISHED'}
 
-        elif act == 'stack' :
-            #new_objs = city.elementStack(objs,builder)
+        elif act == 'stack_grp' :
             new_grps = city.groupStack(objs,builder)
             print('stacked %s new %s\n'%(len(new_grps),builder))
             # list & select them
@@ -196,11 +195,12 @@ class BC_City_ui(bpy.types.PropertyGroup) :
                     ]
             )
     outline_ops = bpy.props.EnumProperty( 
-            items = [ ('remove_otl','Remove','remove the selected builders'),\
-                      ('stack','Stack','stack this new builder over each selected ones') ]
+            items = [ ('remove_otl','Remove','remove the selected builders')
+             ]
             )
     group_ops = bpy.props.EnumProperty(
             items = [ ('add_grp','Add','add a new builder to each selected outline'),\
+                      ('stack_grp','Stack','stack this new builder over each selected ones'),\
                       ('replace_grp','Replace','replace each selected builders by this one'),\
                       ('remove_grp','Remove','remove the selected builders') ]
             )
@@ -497,13 +497,14 @@ class BC_outlines_panel(bpy.types.Panel) :
             if city.ui.outlines_tabs_ops == 'outline' :
                 act = city.ui.outline_ops
                 if act == 'remove_otl' : info = 'remove %s'%(otl.name)
-                elif act == 'stack' : info = 'stack a %s builder over %s'%(wm.city_builders_dropdown,otl.name)
+                else : info = 'unknow'
                 if act not in ['remove_otl'] : display_builder = True
                 else : display_builder = False
 
             elif city.ui.outlines_tabs_ops == 'group' :
                 act = city.ui.group_ops
                 if act == 'add_grp' : info = 'add a %s builder group'%(wm.city_builders_dropdown)
+                elif act == 'stack_grp' : info = 'stack a %s builder over %s'%(wm.city_builders_dropdown,grp.name)
                 elif act == 'replace_grp' : info = 'replace group %s by %s'%(grp.name,wm.city_builders_dropdown)
                 elif act == 'remove_grp' : info = 'remove group %s'%(grp.name)
                 if act not in ['remove_grp'] : display_builder = True
