@@ -7,6 +7,30 @@ import mathutils
 from mathutils import *
 from blended_cities.core.common import *
 
+
+## returns the area of a polyline
+def area(poly,ptype='coord') :
+    if ptype=='vector' : poly=vecToCoord(poly)
+    A=0
+    poly.append(poly[0])
+    for i,c in enumerate(poly) :
+        j = (i+1)%(len(poly))
+        A += poly[i][0] * poly[j][1]
+        A -= poly[i][1] * poly[j][0]
+    A /= 2
+    return abs(A)
+
+
+## returns the perimeter of a polyline
+def perimeter(poly,ptype="vector") :
+    if ptype=="coord" : poly=coordToVec(poly,True)
+    L=0
+    for i in range(1,len(poly)) :
+        l,d=readVec(poly[i])
+        L +=l
+    return L
+
+
 ## check if there's nested lists in a list. used by functions that need
 # list(s) of vertices/faces/edges etc as input
 # @param lst a list of vector or a list of list of vectors

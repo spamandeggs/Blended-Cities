@@ -2,6 +2,24 @@ Blended Cities for blender 2.5 series
 continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
+2011/08/23
+converting code from bc0.445
+. geo module : area() perimeter()
+. length cut function tests in geo_tests.py. used to spawn objects on a line or cut a perimeter into building lots
+. building lots builder extract/conversion from 0.445 to bc 0.6 in /builders
+. removed the outdated matslots argument from builders.
+
+2011/08/22
+group.stack() improvements
+. grp.stack() : height offset now computed at object level, not mesh.
+still faulty with rotated otl in object mode for now, and stacking over generated outlines (height offset error)
+. multi stacks are ok
+. generated or stacked outlines childs are updated again (according to the new concept I still need to document ;)
+. moved 'stack' button to group tab in the outline ui
+. improved city.list() and display() now lists childs outlines
+. removed some of the outdated methods : otl.stack, otl.childsadd, city.elementStack
+. added a concrete mat to sidewalks builder
+
 2011/08/19
 . corrected modal, remove objects, and remove objects and tags buttons
 . corrected coordinates stuff : mixed advantages of local and global coords use for builders

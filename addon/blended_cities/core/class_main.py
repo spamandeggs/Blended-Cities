@@ -697,7 +697,7 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                 print('    %s'%(name))
                 # a generated mesh
                 if type(ob[0]) == list :
-                    verts, edges, faces, matslots, mats = ob
+                    verts, edges, faces, mats = ob
                     for vi,v in enumerate(verts) : verts[vi] *= mat
                     matslots = bld.materialslots
                     ob = objectBuild(name, verts, edges, faces, matslots, mats)
@@ -705,7 +705,7 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                     builder = grp.collection
                 # a generated outline
                 elif type(ob[0]) == str and ob[0] == 'outline' :
-                    dummy, verts, edges, faces, matslots, mats = ob
+                    dummy, verts, edges, faces, mats = ob
                     for vi,v in enumerate(verts) : verts[vi] *= mat
                     matslots = bld.materialslots
                     ob = objectBuild(name, verts, edges, faces, matslots, mats)

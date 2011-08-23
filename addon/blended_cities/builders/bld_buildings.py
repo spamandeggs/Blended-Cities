@@ -83,7 +83,6 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         verts = []
         edges = []
         faces = []
-        matslots = []
         mats  = []
         mat_floor = 0
         mat_inter = 1
@@ -162,7 +161,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
                             faces.extend( roof )
                         fof += fpf
 
-            buildings = [verts, [], faces, matslots, mats]
+            buildings = [verts, [], faces,  mats]
             return [ buildings ]
 
         else :

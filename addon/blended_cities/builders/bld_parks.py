@@ -38,7 +38,6 @@ class BC_parks(BC_elements,bpy.types.PropertyGroup) :
 
         mat_grass = 0
         mat_wall = 1
-        matslots = ['grass','wall']
 
         verts = []
         faces = []
@@ -68,7 +67,7 @@ class BC_parks(BC_elements,bpy.types.PropertyGroup) :
                         #    mats.extend( mat_grass for i in range(len(lawn)) )
                         #    faces.extend( lawn )
                         #fof += fpf * 2
-                    elements.append( [verts,[],faces,matslots,mats] )
+                    elements.append( [verts,[],faces,mats] )
 
             if len(dots) > 0 :
                     for dot in dots :

@@ -312,7 +312,7 @@ class BlendedCities(bpy.types.PropertyGroup) :
             if otl.parent : continue
             childsIter(otl)
 
-        # inconsistency check
+        # consistency check
         print('collections check :\n-------')
         total = len(self.elements)
         print('%s elements :'%(total))
