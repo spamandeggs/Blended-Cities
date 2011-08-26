@@ -271,13 +271,15 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
     # material slots
     if len(matslots) > 0 :
         for matname in matslots :
+            '''
             if matname not in bpy.data.materials :
                 mat = bpy.data.materials.new(name=matname)
                 mat.diffuse_color=( random.uniform(0.0,1.0),random.uniform(0.0,1.0),random.uniform(0.0,1.0))
                 mat.use_fake_user = True
                 warn.append('Created missing material : %s'%matname)
             else :
-                mat = bpy.data.materials[matname]
+            '''
+            mat = bpy.data.materials[matname]
             mesh.materials.append(mat)
 
     # map a material to each face

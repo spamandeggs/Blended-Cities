@@ -719,9 +719,11 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                     ob.name = name
                     builder = 'objects'
                 objectLock(ob)
-                grp.objectAdd(ob,builder)
+                elm = grp.objectAdd(ob,builder)
                 generated.append(ob)
-
+                if builder == 'outlines' :
+                    elm = elm.asOutline()
+                    elm.type = 'generated'
             # remove previous generated and non updated objects from scene and collections
             objs = bpy.data.groups[grp.name].objects
             print('** removing ? %s %s'%(len(objs), len(generated)))

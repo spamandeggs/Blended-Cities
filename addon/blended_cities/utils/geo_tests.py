@@ -2,6 +2,7 @@ import random
 from random import randint as Prandint, uniform as Puniform
 
 import bpy
+from blended_cities.core.common import *
 
 def plant(tlenght,lenght,minmaxint,choose='') :
 
@@ -22,11 +23,6 @@ def plant(tlenght,lenght,minmaxint,choose='') :
     #print 'choose',nbit
     inter = (tlenght-(nbit*lenght)) / nbit
     return nbit+1,inter
-
-def dprint(str,level=1) :
-    city = bpy.context.scene.city
-    if level <= city.debuglevel :
-        print(str)
 
 ## cut a width into several widths
 # @param width the total available space
@@ -167,7 +163,7 @@ def cutB(width,ob_width,int_width,sticked,minl=0.01,pdeb=False) :
                         del(widths[-1])
     if pdeb : print(' width list final\n%s'%widths)
     return widths
-    
+'''
 tlength = 40
 oblength = 5
 sticked = 0
@@ -183,3 +179,4 @@ lengths = cutB(tlength,cuts,sticked,minl=0.001,pdeb=False)
 c = 0
 for l in lengths : c += l
 print('%s\n%s'%(lengths,c))
+'''

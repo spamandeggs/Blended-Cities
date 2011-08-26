@@ -1,4 +1,6 @@
 ## geometry
+import random
+from random import randint as Prandint, uniform as Puniform
 import collections
 from math import *
 
@@ -264,6 +266,464 @@ def polyIn(polys,width,ptype="vector",lst=[],pdeb=False) :
     if nest : return newpolys
     else : return newpolys[0]
 
+
+## add/sub/merge operations on 2 polys.
+# (I mean, it's the goal..)
+def polyBool(polyA,polyB,start=0,ptype="coord",pdeb=False) :
+    if ptype=="vector" : 
+        polyA=vecToCoord(polyA)
+        polyB=vecToCoord(polyB)
+    #polyA=vcoords(polyA)
+    #polyB=vcoords(polyB)
+    newpoly=[]
+    polyBo=polyIn(polyB[:],0.1,"coord")
+    ncA=[{} for i in polyA]
+    ncB=[{} for i in polyB]
+    for ciA in range(start,len(polyA)) :
+        ciB=(ciA+1)%(len(polyA))
+        A=polyA[ciA]
+        B=polyA[ciB]
+        if pdeb : dprint('-> A : %s %s / B %s %s'%(A[0],A[1],B[0],B[1]))
+        for ciC in range(len(polyB)) :
+            ciD=(ciC+1)%(len(polyB))
+            C=polyB[ciC]
+            D=polyB[ciD]
+            if aligned(C,D,A,pdeb=pdeb)==False and aligned(C,D,B,pdeb=pdeb)==False:
+            #if aligned(A,B,C,pdeb=pdeb)==False and aligned(A,B,D,pdeb=pdeb)==False:
+            #if parallel(A,B,C,D,False)==False :#dir,tolerance=0.03,pdeb=False) :
+                inter=SegmentIntersect(A,B,C,D)#,point=False)
+                if pdeb :
+                    dprint(' C %s %s / D %s %s'%(C[0],C[1],D[0],D[1]))
+                if inter != False :
+                    if pdeb : dprint('* intersect at %s'%inter[0])
+                    l,d=readVec(Vector(inter[0])-Vector(A))
+                    ncA[ciA][l]=inter[0]
+                    l,d=readVec(Vector(inter[0])-Vector(C))
+                    ncB[ciC][l]=inter[0]
+            elif pdeb :
+                dprint(' C %s %s / D %s %s canceled'%(C[0],C[1],D[0],D[1]))
+
+    # append new intersection coords to A
+    for ci,c in enumerate(polyA) :
+        newpoly.append(c)
+        if len(ncA[ci])>0 :
+            lsorted = list(ncA[ci].keys())
+            lsorted.sort()
+            for l in lsorted :
+                newpoly.append(ncA[ci][l])
+    polyA=newpoly[:]
+    newpoly=[]
+    # append new intersection coords to B
+    for ci,c in enumerate(polyB) :
+        newpoly.append(c)
+        if len(ncB[ci])>0 :
+            lsorted = list(ncB[ci].keys())
+            lsorted.sort()
+            for l in lsorted :
+                newpoly.append(ncB[ci][l])
+    polyB=newpoly[:] #-1]
+    newpoly=[]
+
+    ciA=0
+    ciB=len(polyB)
+    A=True
+    while ciA>0 or len(newpoly)==0 :
+    
+        if A :
+            c=polyA[ciA]
+            if c not in newpoly :
+                newpoly.append(c)
+            else :
+                if pdeb :
+                    dprint("loop")
+                    dprint('*'*20)
+                    dprint(polyA)
+                    dprint('*'*20)
+                    dprint(polyB)
+                    dprint('*'*20)
+                ciA=0
+                break
+            if pdeb : dprint('A : %s %s %s'%(ciA,c[0],c[1]))
+            if ciA>1 :
+                try :
+                    ciB=polyB.index(c)
+                    if pdeb : dprint('match B in %s'%ciB)
+                    A=False
+                    ciB=(ciB+1)%(len(polyB))
+                except :
+                    ciA=(ciA+1)%(len(polyA))
+            else :
+                ciA=(ciA+1)%(len(polyA))
+        else :
+            c=polyB[ciB]
+            #if c==newpoly[0] :
+                
+            if c not in newpoly :
+                newpoly.append(c)
+            else :
+                ciA=0
+                if pdeb :
+                    dprint("loop")
+                    dprint(newpoly)
+                    dprint('*'*20)
+                    dprint(polyA)
+                    dprint('*'*20)
+                    dprint(polyB)
+                    dprint('*'*20)
+                break
+            if pdeb : dprint('B : %s %s %s'%(ciB,c[0],c[1]))
+            try :
+                ciA=polyA.index(c)
+                A=True
+                if pdeb : dprint('match A in %s'%ciA)
+                ciA=(ciA+1)%(len(polyA))
+            except :
+                #ciB -=1
+                ciB=(ciB+1)%(len(polyB))
+        #for t in range (1000000) : pass
+    if pdeb : dprint('final : \n%s'%(newpoly))
+    return newpoly
+
+
+# if intersections,polyB will split polyA in section
+# first point of polyA MUST NOT belong to any segment of polyB
+def polyBool2(polyA,polyB,iSizeInt,bSticked,minl,op="inter",ptype="coord",pdeb=False) :
+    #pdeb=False
+    if ptype=="vector" : 
+        polyA=vecToCoord(polyA)
+        polyB=vecToCoord(polyB)
+
+    if pdeb :
+        dprint( "polyA :\n%s"%polyA)
+        dprint( "polyB :\n%s"%polyB)
+
+    A=polyA[0]
+    B=polyA[1]
+    
+    #  if aPerim[0] starting point is on bobnewside, modify it before polyBool2()
+    for ci in range(len(polyB)-1) :
+        B=polyB[ci]
+        C=polyB[ci+1]
+        if aligned(B,C,A,True) :
+            if pdeb : dprint('%s MUST be redefined'%A)
+            l,d=readVec(Vector(B)-Vector(A))
+            if l>=iSizeInt[0]:
+                li=Puniform(iSizeInt[0],min(l,iSizeInt[1]))
+            else :
+                li=0.1
+                if pdeb : dprint( 'small side' )
+            v=writeVec(li,d)
+            coord=B+v
+            polyA=polyA[1:]
+            polyA.insert(0,coord)
+            if pdeb : 
+                dprint( 'redefined polyA :\n%s'%polyA)
+                dprint( 'was on %s %s'%(A,B) )
+            A=polyA[0]
+            B=polyA[1]
+            break
+    
+    newpoly=[]
+    ci=0
+    ciC=len(polyB)-1
+    seg=[]
+    start=True
+    while ci < len(polyA)-1 and ciC >= 0 :
+        
+        if start :
+            if pdeb : dprint( 'in')
+            B=polyA[ci+1]
+            seg.append(A)
+            if pdeb :
+                dprint( '-> A %s %s / B %s %s (ci %s)'%(A[0],A[1],B[0],B[1],ci))
+                dprint( seg )
+            for ci2 in range(ciC,-1,-1) :
+                C=polyB[ci2]
+                if pdeb : dprint( 'C %s %s (ci2 %s)'%(C[0],C[1],ci2))            
+                if aligned(A,B,C,True) :
+                    seg.append(C)
+                    if pdeb :dprint( 'ended one : %s'%seg)
+                    newpoly.append(seg)
+                    seg=[]
+                    ciC=ci2
+                    Cp=C
+                    start=False
+                    count=0
+                    break
+            if start :
+                ci +=1
+                A=polyA[ci]
+        else :
+            if pdeb :dprint( 'out')
+            ciC -=1
+            A=polyA[ci]
+            B=polyA[ci+1]
+            C=polyB[ciC]
+            if pdeb : dprint( '-> A %s %s / B %s %s / C %s %s \n'%(A[0],A[1],B[0],B[1],C[0],C[1]))
+            if aligned(A,B,C,True)==False :
+                count +=1
+                if count==3 or ciC==0:
+                    lenght,dir=readVec(B-A)
+                    if Puniform(0.0001,1) <= bSticked :
+                        dprint('      .sticked [pbool2]',level=3)
+                        li=minl
+                    else : li=Puniform(iSizeInt[0],min(lenght,iSizeInt[1]))
+                    v=writeVec(li,dir)
+                    A=Cp+v
+                    start=True
+            else :
+                count=0
+                Cp=C
+                if C==B : ci +=1
+    if start :
+        seg.append(B)
+        newpoly.append(seg)
+    if pdeb :dprint( 'final : \n%s'%newpoly)
+    return newpoly
+
+
+# find polygon auto-intersection
+def polyInter(polys,ptype="vector",sameNum=False,list=[]) :
+    try :
+        a=polys[0][0][0]
+        one=False
+    except :
+        polys=[polys]
+        one=True
+    if len(list)>0 : list=list[:]
+    if ptype=="vector" : 
+        polys=vecToCoord(polys)
+        if len(list)>0 : list=vecToCoord(list)
+    i=0
+    pdeb=False
+    while i < len(polys) :
+        poly=polys[i]
+        lp=len(poly)
+        s=0
+        if pdeb :dprint( '> next poly : %s'%i)
+        while s < lp-2 :
+            s2=s+2
+            lp=len(poly)
+            A=Vector(poly[s])
+            B=Vector(poly[s+1])
+            if pdeb :
+                dprint( '> poly : %s'%i)
+                dprint( '> A : %s B : %s'%(s,s+1))
+                dprint( '> len : %s'%lp)
+            while s2<lp :
+                C=Vector(poly[s2])
+                ciD=(s2+1)%lp
+                D=Vector(poly[ciD])
+                if pdeb : dprint( '  C : %s D: %s'%(s2,ciD))
+                #if s2<lp-1 :D=Vector(poly[s2+1])
+                #else :D=Vector(poly[0])
+                if s==0 and s2==lp-1 :
+                    if pdeb : dprint( 'cancel')
+                    pass
+                else :
+                    inter=SegmentIntersect(A,B,C,D,False)
+                    if inter != False :
+                        if pdeb :dprint( 'inter : ')
+                        polys.append([])
+                        polys[-1]=poly[:]
+                        if ciD<lp-1 :
+                            del polys[-1][s2+1:]
+                            del polys[-1][0:s+1]
+                            del polys[i][s+1:s2+1]
+                            polys[i].insert(s+1,inter[0])
+                            polys[-1].insert(0,inter[0])
+                            if sameNum :
+                                    polys[i].insert(s+1,inter[0])
+                                    polys[-1].insert(0,inter[0])
+                        else :
+                            del polys[i][s2+1:]
+                            del polys[i][0:s+1]
+                            del polys[-1][s+1:s2+1]
+                            polys[-1].insert(s+1,inter[0])
+                            polys[i].insert(0,inter[0])
+                            if sameNum :
+                                    polys[-1].insert(s+1,inter[0])
+                                    polys[i].append(inter[0])
+                        if pdeb :dprint( 'newpoly :\n%s'%polys[i])
+                        s=0
+                        break
+                if pdeb :dprint('next CD')
+                s2 +=1
+            else :
+                if pdeb :dprint('next AB')
+                s +=1
+        i +=1
+
+    # remove duplicate coords
+    if sameNum == False :
+        for pi,p in enumerate(polys) :
+            p2=[]
+            for c in p :
+                c=Vector(c)
+                #if c not in p2 :
+                if p2==[] or cfloat(c,'in',p2,0.001)==False :
+                    p2.append(c)
+            polys[pi]=p2
+    
+    #  remove lines
+    for p in polys[:] :
+        if len(p)<3 : polys.remove(p)
+    
+    if len(list)>0 :
+        for i,poly in enumerate(list) :
+            polys.insert(i,poly)
+    if ptype=="vector" :polys=coordToVec(polys,True,True)
+    if pdeb :
+        dprint( 'childs :')
+        for p in polys : dprint( '%s\n'%p)
+    return polys
+
+
+def polyClean(polys,ptype="vector",p=True,mark=False,pdeb=False) :
+    pdab=pdeb
+    if pdeb : dprint( "\npolyClean :")
+    try :
+        a=polys[0][0][0]
+        one=False
+    except :
+        polys=[polys]
+        one=True
+    if ptype=="coord" : polys=coordToVec(polys,p)
+    newpolys=[]
+    deads=[]
+    if p and pdeb : dprint( "ispoly")
+    for ip,polyvec in enumerate(polys) :
+        if pdab :
+            if ip==7:pdeb=False
+            else :pdeb=False
+        dead=[]
+        polycond=len(polyvec)>1 and p
+        linecond=len(polyvec)>2 and p==False
+        if p and linecond==False and pdeb : dprint( "abort. len : %s"%(len(polyvec)))
+        if linecond or polycond :
+            lp=len(polyvec)
+            i=1
+            l=0
+            delete=0
+            newpoly=[polyvec[0][:]]
+            pos=polyvec[0][:]
+            if pdeb :
+                dprint( "------\npoly %s : depart %s"%(ip,pos))
+                dprint( "%s\n------"%(polyvec))
+            for i,vec in enumerate(polyvec) :
+                if i>0 :
+                    #if pdeb : dprint( vec,":"
+                    vl,vd=readVec(vec)
+                    if i==1 :
+                        pvec=polyvec[-1-delete]
+                        j=len(polyvec)-1-delete
+                    else :
+                        pvec=polyvec[i-1-delete]
+                        j=i-1-delete
+                    pvl,pvd=readVec(pvec)
+                    #if pdeb : dprint( "-1 :",pvd,"0 :",vd,"len :",pvl,vl
+                    add=False
+                    # delete null and too small vectors
+                    if cfloat(vl,'eq',0,0.0001) :
+                        delete=1
+                        l +=vl
+                        if mark : dead.append(j)
+                    else :
+                        #dprint( vec
+                        delete=0
+                        pos=[pos[0]+vec[0],pos[1]+vec[1],pos[2]+vec[2]]
+                        # don't add the last closing vector
+                        #if i==lp-1 and polyvec[i]==pos :add=False
+                        # merge vectors with the same orientation
+                        if cfloat(vd,'eq',pvd,0.1) and (p or (p==False and i>1)):
+                            l += vl
+                            if pdeb : dprint( "merge")
+                            if i==1 : 
+                                l += pvl
+                                newpoly[0]=[newpoly[0][0]-pvec[0],newpoly[0][1]-pvec[1],newpoly[0][2]]
+                            if mark and i>1 : dead.append(j)
+                            #dprint( "gotcha**%s %s %s %s"%(i,polyvec[i],pvec,l)
+                        elif i>1 :
+                            nvec=writeVec(l,pvd)
+                            l=vl
+                            add=True
+                        else : l=vl
+                        if add :
+                            if pdeb : dprint( "added %s"%nvec)
+                            newpoly.append(nvec)
+            if p==False :
+                nvec=writeVec(l,vd)
+                newpoly.append(nvec)
+            if pdeb : dprint( "cleaned : %s\n"%(newpoly))
+        #else : newpoly=[[]]
+        elif p : newpoly=[[]]
+        else : newpoly=polyvec
+        if pdeb :dprint( newpoly)
+        newpolys.append(newpoly)
+        if mark : deads.append(dead)    
+    # return it, the same type than input type
+    if ptype=="vector" :
+        # lazzy : just to add last vector to close poly, if none
+        newpolys=vecToCoord(newpolys)
+        newpolys=coordToVec(newpolys)
+    if ptype=="coord" : 
+        newpolys=vecToCoord(newpolys,p)
+        #dprint( newpolys[7]
+    if one:
+        if mark : return newpolys[0],deads
+        else : return newpolys[0]
+    else :
+        if mark : return newpolys,deads
+        else : return newpolys
+
+
+# reshape polys whom edges are too thin
+def polyUnedge(poly,minlenght=1,ptype="coord",pdeb=False) :
+    dprint('* polyUnedge')
+    if pdeb : dprint(poly)
+    if len(poly) < 4 : return poly
+    if ptype == "vector" : poly = vecToCoord(poly)
+    test=True
+    while test :
+        lp=len(poly)#-1
+        test=False
+        #for ciB,B in enumerate(poly) :
+        for ciB in range(len(poly)-2) :
+            ciC=(ciB+1)%lp
+            #B=Vector(poly[ciB]).resize3D()
+            #C=Vector(poly[ciC]).resize3D()
+            B, C = Vectors([poly[ciB],poly[ciC]])
+            lBC,dBC = readVec(C-B)
+            if lBC < minlenght :
+                ciA=(ciB-1)%lp
+                ciD=(ciB+2)%lp
+                #A=Vector(poly[ciA]).resize3D()
+                #D=Vector(poly[ciD]).resize3D()
+                A, D = Vectors([poly[ciA],poly[ciD]])
+                if pdeb :
+                    dprint( 'C-B too short')
+                    dprint( 'A %s %s'%(ciA,A))
+                    dprint( 'B %s %s'%(ciB,B))
+                    dprint( 'C %s %s'%(ciC,C))
+                    dprint( 'D %s %s'%(ciD,D))
+                para,dir=parallel(A,B,C,D,True)
+                if para and dir==False :
+                    if pdeb : dprint( 'AB CD //')
+                    lAB,d=readVec(B-A)
+                    lCD,d=readVec(D-C)
+                    if lAB <= lCD :
+                        N=A+(C-B)
+                    else :
+                        N=D-(C-B)
+                    del poly[ciC]
+                    del poly[ciB]
+                    poly.insert(ciB,N)
+                    test=True
+                    break
+    if ptype=="vector" :poly=coordToVec(poly)
+    return poly
+
+
 ## from a vector, returns its length and its direction in degrees
 # direction is planar, from x y components
 def readVec(side) :
@@ -344,10 +804,170 @@ def angleEnlarge(c0,c1,c2,w) :
     d = writeVec(w[1],rot-90)
     d = d + c1
     e = d + v1    
-    
+    # TODO line_line always returns a tuple (never a None like line_2d)
     interlist = geometry.intersect_line_line(b,c,d,e)
     print(interlist)
     if type(interlist) != type(None) :
         return interlist[0]
     else :
         return c
+
+# return angle of c1 where c0,c1,c2 are coords
+# the coords order define which angle you want (anti-clockwise)
+# TODO compare with mathutils Vector() :  v1.angle(v2,fallback) returns radians or fallback when given
+# Zero length vectors raise an AttributeError
+def Angle(c0,c1,c2,all=False,ptype='coord') :
+    sz=[0,0,0]
+    r=[0,0,0]
+    if ptype=='coord' :
+        sz[0],r[0]=readVec([c1[0]-c0[0],c1[1]-c0[1]])
+        sz[1],r[1]=readVec([c2[0]-c1[0],c2[1]-c1[1]])
+        sz[2],r[2]=readVec([c2[0]-c0[0],c2[1]-c0[1]])
+    else :
+        sz[0],r[0]=readVec(Vector(c0))
+        sz[1],r[1]=readVec(Vector(c1))
+        sz[2],r[2]=readVec(Vector(c0)+Vector(c1))
+        
+    angle=degrees(acos( (sz[0]**2+sz[1]**2-sz[2]**2) / (2*sz[0]*sz[1]) ))
+
+    if r[0]>0 and r[1]<0 : d=r[1]+360
+    else : d=r[1]
+    
+    if r[0] < d and d < r[0]+180 : pass
+    else :angle = 360-angle
+    """
+    angle=r[1]-r[0]
+    if angle<-180 : angle +=360
+    if angle>180 : angle -=360
+    if angle>0 : angle -=180
+    else : angle +=180
+    if angle<0 : angle=abs(angle)
+    else : angle -=360
+    """
+    if all : return angle,sz,r
+    else :return angle
+
+## check if 3 points are aligned
+def aligned(p1,p2,p3,Cin=False,pdeb=False) :
+    if pdeb :
+        dprint('aligned :')
+        dprint('p1 : %s'%p1)
+        dprint('p2 : %s'%p2)
+        dprint('p3 : %s'%p3)
+    p1=[float(p1[0]),float(p1[1])]
+    p2=[float(p2[0]),float(p2[1])]
+    p3=[float(p3[0]),float(p3[1])]
+    tolerance=0.0009
+    if Cin :
+        if p3[0] < min(p1[0],p2[0]) - tolerance or p3[0] > max(p1[0],p2[0]) + tolerance or \
+           p3[1] < min(p1[1],p2[1]) - tolerance or p3[1] > max(p1[1],p2[1]) + tolerance :
+            if pdeb : dprint('C not in [AB]')
+            return False
+    var=0.005
+    if cfloat(p1[0],'not',p2[0],var) :
+        if pdeb : dprint('A not null')
+        a=(p2[1]-p1[1])/(p2[0]-p1[0])
+    elif cfloat(p1[1],'eq',p2[1],var) : return True
+    elif cfloat(p3[0],'eq',p1[0],var) : return True
+    else : a=0
+    b=p1[1]-a*p1[0]
+    if pdeb :
+        dprint('%s %s'%(a,b))
+        dprint('%s %s'%(p3[1],p3[0]*a+b))
+    if cfloat(p3[1],'eq',p3[0]*a+b,var) : return True
+    else : return False
+
+
+# check if (AB) // (CD) (degree comparison)
+# check directions of vectors too.
+# merged lines return True
+def parallel(A,B,C,D,dir=False,tolerance=0.03,pdeb=False) :
+
+    A,B,C,D = Vectors([A,B,C,D])
+
+    l,dAB=readVec(B-A)
+    l,dBA=readVec(A-B)
+    l,dCD=readVec(D-C)
+
+    abcd=cfloat(dAB,'eq',dCD,tolerance)
+    bacd=cfloat(dBA,'eq',dCD,tolerance)
+    if abcd or bacd :
+        if pdeb :
+            dprint('%s %s and %s %s'%(A,B,C,D))
+            dprint('%s %s or %s %s'%(dAB,dCD,dBA,dCD))
+            dprint('%s %s'%(abcd,bacd))
+            dprint('are parallel')
+        if dir == False : return True
+        elif abcd :
+            if pdeb : dprint('same dir')
+            return True,True
+        else :
+            if pdeb : dprint('inverse dir')
+            return True,False
+    elif dir : return False,False
+    else : return False
+
+## convert list of list/tuple into vector / change vector dimensions
+def Vectors(vlist,dim = 3) :
+    nvlist = []
+    for v in vlist :
+        #if type(v) == list or type(v) == tuple : v = Vector(v)
+        if type(v) != Vector : v = Vector(v)
+        if len(v) != dim :
+            if dim == 2 : v.resize_2d()
+            elif dim == 3 : v.resize_3d()
+            elif dim == 4 : v.resize_4d()
+            else : v.resize_3d()
+        nvlist.append(v)
+    return nvlist
+
+# returns coordinate of segments [A,B] and [C,D] intersection, on a XY plan (not world !)
+# input segment [AB] and segment [CD]. each can be either vector or list x,y / x,y,z
+# return either false or the LineIntersect results. LineIntersect(A,B,C,D)[0] is the intersection coord.
+def SegmentIntersect(A,B,C,D,point=True,more=False,pdeb=False) :
+
+    A,B,C,D = Vectors([A,B,C,D])
+    #"l,dAB=readVec(B-A)
+    #l,dBA=readVec(A-B)
+    #l,dCD=readVec(D-C)
+    dec=0.03
+    #if cfloat(dAB,'not',dCD,dec) and cfloat(dBA,'not',dCD,dec) :
+    if parallel(A,B,C,D,False)==False :
+        if (( signedarea(A, B, C) * signedarea(A, B, D) <= 0) and ( signedarea(C, D, A) * signedarea(C, D, B) <= 0)) :
+            #inter=LineIntersect(A,B,C,D)
+            inter = geometry.intersect_line_line(A,B,C,D)
+            # if (AB)=(CD) : return none
+            #if type(inter)!=type(tuple()) :
+            #    if pdeb :print 'nonetype'
+            #    return False
+            # if (AB)=(CD) bis : return -1.#IND
+            #elif str(inter[0][0])=='-1.#IND' :
+            #    if pdeb :print '-1#IND'
+            #    return False
+            
+            # if (AB)=(CD) : return none
+            if type(inter) != type(tuple()) or str(inter[0][0]) == 'nan':
+                if pdeb : dprint('parrallel')
+                return False
+            # inter is equal to A,B,C or D : shall we include them ?
+            elif point == False and \
+                ( cfloat(inter[0],'eq',A,dec) or \
+                cfloat(inter[0],'eq',B,dec) or \
+                cfloat(inter[0],'eq',C,dec) or \
+                cfloat(inter[0],'eq',D,dec)) :
+                    if pdeb : dprint('canceled : %s is an extremity'%inter[0])
+                    return False
+            # ok
+            else : return inter
+        elif pdeb : dprint('segments')
+    # segments doesn't cross ( parralel or merged )
+    elif more :
+        if pdeb : dprint('parallels')
+        return False,True
+    return False
+
+# segmentintersect sub-function
+def signedarea(A,B,C) :
+    sa=((B.x-A.x)*(C.y-A.y) - (B.y-A.y)*(C.x-A.x))/2
+    if cfloat(sa,'eq',0,0.001) : sa=0
+    return sa

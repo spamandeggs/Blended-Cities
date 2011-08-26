@@ -3,6 +3,17 @@ continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
 2011/08/23
+new builder : building_lots (ported from 0.445 / b2.49)
+. adapted 0.445 code responsible for splitting a perimeter into building lots as a builder
+. it generates outlines along each perimeter of an outline.
+. geo module : aligned(a,b,c), Angle(), parallel(), SegmentIntersect(a,b,c,d)
+polyUnedge(), polyBool(), polyBool2(??),polyClean(), polyInter()
+. perimeters verts of the outline need to be ordered ANTI-CLOCKWORK from top view for now,
+like [ [0,0,z],[1,0,z],[1,1,z],[0,1,z] ]
+. basic tests are ok most of the time : outline hierarchy system looks ok, can be generated from the sidewalk outline.
+a lot to check/test and improve using the new api
+
+2011/08/23
 converting code from bc0.445
 . geo module : area() perimeter()
 . length cut function tests in geo_tests.py. used to spawn objects on a line or cut a perimeter into building lots
