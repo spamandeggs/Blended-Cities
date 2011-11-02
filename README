@@ -3,6 +3,7 @@ continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
 2011/11/03
+. hey I'm not john doe dear Im littleneo :)
 . added uv support for tile-mapping and test textures in \library\textures
 methods are implemented for the buildings builder :
 after 1st creation of a building configure the floor mat of it to use the texture for BGL mode or rendering
