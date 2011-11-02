@@ -1,1 +1,6 @@
 *.pyc
+.project
+.pydevproject
+.svn
+__pycache__
+Thumbs.db

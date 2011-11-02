@@ -697,16 +697,29 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                 print('    %s'%(name))
                 # a generated mesh
                 if type(ob[0]) == list :
-                    verts, edges, faces, mats = ob
-                    for vi,v in enumerate(verts) : verts[vi] *= mat
+                    datas = [ [] for i in range(0,5) ]
+                    for i, data in enumerate(ob) : 
+                        datas[i] = data
+                    for vi,v in enumerate(datas[0]) :  datas[0][vi] = mat *  datas[0][vi]
                     matslots = bld.materialslots
-                    ob = objectBuild(name, verts, edges, faces, matslots, mats)
+                    ## verts, edges, faces, matslots, mats, uvs
+                    ob = objectBuild(name, datas[0], datas[1], datas[2], matslots, datas[3], datas[4])
                     ob.name = name
                     builder = grp.collection
+                    '''
+                    verts, edges, faces, mats, uvs = ob
+                    uvs = []
+                    for vi,v in enumerate(verts) : verts[vi] = mat * verts[vi]
+                    matslots = bld.materialslots
+                    ## verts, edges, faces, matslots, mats, uvs
+                    ob = objectBuild(name, verts, edges, faces, matslots, mats, uvs)
+                    ob.name = name
+                    builder = grp.collection
+                    '''
                 # a generated outline
                 elif type(ob[0]) == str and ob[0] == 'outline' :
                     dummy, verts, edges, faces, mats = ob
-                    for vi,v in enumerate(verts) : verts[vi] *= mat
+                    for vi,v in enumerate(verts) : verts[vi] = mat * verts[vi]
                     matslots = bld.materialslots
                     ob = objectBuild(name, verts, edges, faces, matslots, mats)
                     builder = 'outlines'
@@ -733,15 +746,14 @@ class BC_groups(BC_elements,bpy.types.PropertyGroup) :
                     if ob not in generated :
                         elm = city.elementGet(ob)
                         dprint('stack test : %s %s %s'%(elm.name,elm.className(False),elm.asOutline().type))
+                        # don't remove outlines added by the user, like stacked outlines
                         if elm.className(False) == 'outlines' and elm.asOutline().type != 'generated' :
-                            print('stacked')
                             continue
-                        grp.remove(False,True,ob,False)
+                        grp.remove(False,True,ob,True)
 
-            # childs update
+            # child outlines update
             for child in grp.Childs() :
                 if child.className() == 'outlines' :
-                    #if child.type == 'stacked' :
                     child.build()
 
         print('** end build %s'%bld.name)

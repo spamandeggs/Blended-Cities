@@ -1,7 +1,6 @@
 ##\file
-# meshes_io.py
+# meshes_io.py most of this code will become mesh_tools
 # set of functions used by builders
-print('meshes_io.py')
 import bpy
 import mathutils
 import random
@@ -10,7 +9,9 @@ from mathutils import *
 from blended_cities.core.class_main import *
 from blended_cities.core.common import *
 from blended_cities.utils.geo import *
-  
+ 
+def dprint(str,lvl) :
+    print(str)
     
 def matToString(mat) :
     #print('*** %s %s'%(mat,type(mat)))
@@ -99,10 +100,13 @@ def outlineRead(obsource) :
                     # should add a router for closed perimeter
                     # ...
                     # ...
-            # check
-            #for vi,l in enumerate(lst) :
-            #   if l != -1 : print(verts[vi])
-
+            # perimeters verts order (must be anticlockwise)
+            for i,p in enumerate(perims) :
+                t = angleEnlarge(p[0],p[1],p[2],-0.001)
+                is_in = pointInPoly(t[0],t[1],p)
+                print('point %s,%s is %s'%(t[0],t[1],'in' if is_in else 'out'))
+                if is_in == False :
+                    perims[i].reverse()
             return mat_ori, perims, lines, dots
 
 
@@ -208,9 +212,9 @@ def objectLock(ob,state=True) :
         ob.lock_scale[i] = state
 
 
-def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
+def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[], uvs=[] ) :
     #print('build element %s (%s)'%(elm,elm.className()))
-    print('object build')
+    dprint('object build',2)
     city = bpy.context.scene.city
     # apply current scale
     verts = metersToBu(verts)
@@ -221,7 +225,7 @@ def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
             obname = elm.name
     else : obname= elm
 
-    obnew = createMeshObject(obname, verts, edges, faces, matslots, mats)
+    obnew = createMeshObject(obname, True, verts, edges, faces, matslots, mats, uvs)
     #elm.asElement().pointer = str(ob.as_pointer())
     if type(elm) != str :
         if elm.className() == 'outlines' :
@@ -236,39 +240,31 @@ def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[] ) :
         #ob.matrix_world = Matrix() # world
     return obnew
 
+## material MUST exist before creation of material slots
+## map only uvmap 0 to its image defined in mat  for now (multitex view)
+def createMeshObject(name, replace=False, verts=[], edges=[], faces=[], matslots=[], mats=[], uvs=[]) :
 
-def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
+    if replace :
+        # naming consistency for mesh w/ one user
+        if name in bpy.data.objects :
+            mesh = bpy.data.objects[name].data
+            if mesh :
+                if mesh.users == 1 : mesh.name = name
+            else : 
+                dprint('createMeshObject : object %s found with no mesh (%s) '%(name,type(mesh)),2)
+                wipeOutObject(bpy.data.objects[name])
+        # update mesh/object
+        if name in bpy.data.meshes :
+            mesh = bpy.data.meshes[name]
+            mesh.user_clear()
+            wipeOutData(mesh)
 
-    warn = [] # log some event
-
-
-    # naming consistency for mesh w/ one user
-    if name in bpy.data.objects :
-        mesh = bpy.data.objects[name].data
-        if mesh :
-            if mesh.users == 1 : mesh.name = name
-        else : print('createMeshObject : no mesh found in %s'%name)
-    # update mesh/object
-    if name in bpy.data.meshes :
-        mesh = bpy.data.meshes[name]
-        mesh.user_clear()
-        wipeOutData(mesh)
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(verts, edges, faces)
     mesh.update()
-    '''
-    mesh.vertices.add(len(verts))
-    for vi,v in enumerate(verts) :
-        mesh.vertices[vi].co = v
-    mesh.edges.add(len(edges))
-    for ei,e in enumerate(edges) :
-        mesh.edges[ei].vertices = e
-    mesh.faces.add(len(faces))
-    for fi,f in enumerate(faces) :
-        mesh.faces[fi].vertices_raw = f
-    mesh.update()
-    '''
+
     # material slots
+    matimage=[]
     if len(matslots) > 0 :
         for matname in matslots :
             '''
@@ -281,28 +277,59 @@ def createMeshObject(name, verts, edges=[], faces=[], matslots=[], mats=[] ) :
             '''
             mat = bpy.data.materials[matname]
             mesh.materials.append(mat)
+            texslot_nb = len(mat.texture_slots)
+            if texslot_nb :
+                texslot = mat.texture_slots[0]
+                if type(texslot) != type(None) :
+                    tex = texslot.texture
+                    if tex.type == 'IMAGE' :
+                        img = tex.image
+                        if type(img) != type(None) :
+                            matimage.append(img)
+                            continue
+            matimage.append(False)
 
     # map a material to each face
     if len(mats) > 0 :
         for fi,f in enumerate(mesh.faces) :
             f.material_index = mats[fi]
 
-    # uv
-    # ...
+    # uvs
+    if len(uvs) > 0 :
+        for uvi, uvlist in enumerate(uvs) :
+            uv = mesh.uv_textures.new()
+            uv.name = 'UV%s'%uvi
+            for uvfi, uvface in enumerate(uvlist) :
+                #uv.data[uvfi].use_twoside = True # 2.60 changes mat ways
+                mslotid = mesh.faces[uvfi].material_index
+                #mat = mesh.materials[mslotid]
+                #tex = mat.texture_slots[0].texture
+                #img = tex.image
+                if matimage[mslotid] :
+                    img = matimage[mslotid]
+                    uv.data[uvfi].image=img
+                    #uv.data[uvfi].use_image = True
+                uv.data[uvfi].uv1 = Vector((uvface[0],uvface[1]))
+                uv.data[uvfi].uv2 = Vector((uvface[2],uvface[3]))
+                uv.data[uvfi].uv3 = Vector((uvface[4],uvface[5]))
+                if len(uvface) == 8 :
+                    uv.data[uvfi].uv4 = Vector((uvface[6],uvface[7]))
 
-    if name not in bpy.data.objects :
+
+    if name not in bpy.data.objects or replace == False :
         ob = bpy.data.objects.new(name=name, object_data=mesh)
-        dprint('  create object %s'%ob.name)
+        dprint('  create object %s'%ob.name,2)
     else :
         ob = bpy.data.objects[name]
         ob.data = mesh
         ob.parent = None
         ob.matrix_local = Matrix()
-        dprint('  reuse object %s'%ob.name)
+        dprint('  reuse object %s'%ob.name,2)
     if  ob.name not in bpy.context.scene.objects.keys() :
         bpy.context.scene.objects.link(ob)
     return ob
- 
+
+
 def materialsCheck(bld) :
     if hasattr(bld,'materialslots') == False :
         #print(bld.__class__.__name__)
@@ -316,21 +343,48 @@ def materialsCheck(bld) :
                 mat = bpy.data.materials.new(name=matname)
                 mat.use_fake_user = True
                 if hasattr(bld,'mat_%s'%(matname)) :
-                    method = 'defined in builder'
+                    method = 'defined by builder'
                     matdef = eval('bld.mat_%s'%(matname))
                     mat.diffuse_color = matdef['diffuse_color']
                 else :
                     method = 'random'
                     mat.diffuse_color=( random.uniform(0.0,1.0),random.uniform(0.0,1.0),random.uniform(0.0,1.0))
-                dprint('Created missing material %s (%s)'%(matname,method))
+                dprint('Created missing material %s (%s)'%(matname,method),2)
+
+# face are squared or rectangular, 
+# any orientation
+# vert order width then height 01 and 23 = x 12 and 03 = y
+# normal default when face has been built
+def uvrow(vertices,faces,normals=True) :
+    uvs = []
+    for face in faces :
+        v0 = vertices[face[0]]
+        v1 = vertices[face[1]]
+        v2 = vertices[face[-1]]
+        print(v0,v1)
+        lx = (v1 - v0).length
+        ly = (v2 - v0).length
+        # init uv
+        if len(uvs) == 0 :
+            x = 0
+            y = 0
+        elif normals :
+            x = uvs[-1][2]
+            y = uvs[-1][3]
+        else :
+            x = uvs[-1][0]
+            y = uvs[-1][1]
+        if normals : uvs.append([x,y,x+lx,y,x+lx,y+ly,x,y+ly])
+        else : uvs.append([x+lx,y,x,y,x,y+ly,x+lx,y+ly])
+    return uvs
 
 
 
 def updateChildHeight(otl,height) :
-    print('** update childs of %s : %s'%(otl.name,otl.childs ))
+    dprint('** update childs of %s : %s'%(otl.name,otl.childs ),2)
     city = bpy.context.scene.city
     for otl_child in otl.Childs() :
-        print(' . %s'%otl_child.name)
+        dprint(' . %s'%otl_child.name,3)
         #verts, edges, edgesW , bounds = readMeshMap(childname,True,1)
         #otl_child = city.outlines[child.name]
         # force re-read of data

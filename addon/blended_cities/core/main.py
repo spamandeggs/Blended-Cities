@@ -89,7 +89,7 @@ class BlendedCities(bpy.types.PropertyGroup) :
         if otl_objects == False :
             otl_objects = ['none']
             build_it = False
-        dprint(otl_objects)
+        dprint(str(otl_objects))
         # the outline object is not known yet. no build() then
         #if otl_ob == False : build = False
         new_elms = []
@@ -282,6 +282,7 @@ class BlendedCities(bpy.types.PropertyGroup) :
 
         # define default value
         city.modalConfig()
+        city.logDefaults()
         bpy.context.scene.unit_settings.system = 'METRIC'
 
 
@@ -291,9 +292,12 @@ class BlendedCities(bpy.types.PropertyGroup) :
     def build(self,what='all', builder='all') :
         objs = []
         dprint('\n** BUILD ALL\n')
-        for grp in self.groups :
-            grp.build()
-            objs.append([grp, grp.Parent()])
+        for otl in self.outlines :
+            if otl.parent : continue
+            otl.build()
+        #for grp in self.groups :
+        #    grp.build()
+        #    objs.append([grp, grp.Parent()])
         return objs
 
     ## list all or part of the elements, filters, etc.., show parented element
@@ -328,74 +332,17 @@ class BlendedCities(bpy.types.PropertyGroup) :
 
     ## modal configuration of script events
     def modalConfig(self) :
-        mdl = bpy.context.window_manager.modal
+        mdl = bpy.context.scene.city.modal
         mdl.func = 'bpy.context.scene.city.modal(self,context,event)'
 
-
-    ## the HUD function called from script events (TO DO)
-    def hud() :
-        pass
-
-
-    ## the modal function called from script events (TO DO)
-    def modal(self,self_mdl,context,event) :
-            dprint('modal')
-            if bpy.context.mode == 'OBJECT' and \
-            len(bpy.context.selected_objects) == 1 and \
-            type(bpy.context.active_object.data) == bpy.types.Mesh :
-                elm, grp, otl = self.elementGet('active',True)
-                if elm :
-                    if elm.className(False) == 'outlines' :
-                        otl.build()
-                    else :
-                        grp.build()
-            '''
-                if elm.className() == 'buildings' or elm.peer().className() == 'buildings' :
-                    dprint('rebuild')
-                    if elm.className() == 'buildings' :
-                        blg = elm
-                    else :
-                        blg = elm.peer()
-                    dprint('rebuild')
-                    blg.build(True)
-
-            if event.type in ['TAB','SPACE'] :
-                self.go_once = True
-
-            if event.type in ['G','S','R'] :
-                self.go=False
-                
-                if bpy.context.mode == 'OBJECT' and \
-                len(bpy.context.selected_objects) == 1 and \
-                type(bpy.context.active_object.data) == bpy.types.Mesh :
-                    elm = self.elementGet(bpy.context.active_object)
-                    if elm : self.go=True
-
-            elif event.type in ['ESC','LEFTMOUSE','RIGHTMOUSE'] :
-                    self.go=False
-                    self.go_once=False
-                    #dprint('modal paused.')
-                    #mdl.log = 'paused.'
-                    #context.region.callback_remove(self._handle)
-
-            if event.type == 'TIMER' and (self.go or self.go_once) :
-                        #self_mdl.log = 'updating...'
-
-                        #dprint('event %s'%(event.type))
-                        elm = self.elementGet(bpy.context.active_object)
-                        #dprint('modal acting')
-
-                        if elm.className() == 'buildings' or elm.peer().className() == 'buildings' :
-                            if elm.className() == 'buildings' :
-                                blg = elm
-                            else :
-                                blg = elm.peer()
-                            dprint('rebuild')
-                            blg.build(True)
-            #bpy.ops.object.select_name(name=self.name)
-                        self.go_once = False
-                        #if self.go == False : mdl.log = 'paused.'
-            '''
+    ## logging configuration
+    def logDefaults(self) :
+        self.log.console.timestamp = False
+        self.log.console.linelength = 80
+        self.log.console.loglevel = 3
+        self.log.popup.loglevel = 2
+        self.log.loglevel = 3
+        self.log.buffer = 100
 
 
 # register_class() for BC_builders and builders classes are made before

@@ -58,8 +58,10 @@ class BC_sidewalks(BC_elements,bpy.types.PropertyGroup) :
 
             # for each sidewalk block, add an outline on it
             outline_verts = polyIn(ground,-self.sidewalkWidth,'coord')
-            outline_edges = edgesLoop(0, len(outline_verts))
-            outlines.append( ['outline', outline_verts, outline_edges, [], [] ] )
+            outline_verts_list = polyInter(outline_verts,'coord')
+            for outline_verts in outline_verts_list :
+                outline_edges = edgesLoop(0, len(outline_verts))
+                outlines.append( ['outline', outline_verts, outline_edges, [], [] ] )
 
         sidewalks = [ verts, [], faces, [] ]
         elements.append(sidewalks)

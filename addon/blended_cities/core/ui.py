@@ -3,7 +3,11 @@
 # core and shared user interface components
 print('ui.py')
 import bpy
+import bgl
+import blf
+
 from blended_cities.utils.meshes_io import *
+from blended_cities.utils.ui_tools import *
 from blended_cities.core.common import *
 
 ########################
@@ -135,10 +139,131 @@ class OP_BC_Selector(bpy.types.Operator) :
             bpy.ops.object.mode_set(mode='EDIT')
         return {'FINISHED'}
 
+################
+## MODAL CONTROL
+################
+
+class BC_City_ui_helpers(bpy.types.PropertyGroup) :
+
+    def start(self) :
+        mdl = bpy.context.scene.city.modal
+        mdl.func = 'bpy.context.scene.city.ui.helpers.modal(self,context,event)'
+        mdl.hudfunc = 'bpy.context.scene.city.ui.helpers.hud'
+        mdl.area = 'VIEW_3D'
+        mdl.hud = True
+        mdl.status = True
+        return mdl.status
+
+    def stop(self) :
+        mdl = bpy.context.scene.city.modal
+        mdl.status = False
+        return mdl.status
+        print('stopped?')
+
+    ## the HUD function called from script events (TO DO)
+    def hud(dummy, self, context) :
+        if 'type' in dir(self) :
+            city = bpy.context.scene.city
+            mdl = city.modal
+            evt = self
+            
+            x_min,x,x_max = self._regions
+            y_min,y_max = self._regionsy
+
+            if x < self.mouse_x < x_max and y_min < self.mouse_y < y_max :
+                mouse_x = self.mouse_x - x
+                mouse_y = self.mouse_y - y_min
+            else :
+                mouse_x = False
+                mouse_y = False
+                
+            # timer
+            if mdl.timer :
+                if evt.type == 'TIMER' : self.idx = (self.idx + 1)%4
+                blf.size(0, 11, 72)
+                blf.position(0, 35, 50, 0)
+                blf.draw(0, "timer %1.3f : %s"%( mdl.timer_refresh, ('|/-\\')[self.idx]) )
+
+            # is over ?
+            overcrop = False
+            bgl.glColor4f(1,1,1,1)
+            #if mouse_x :
+            blf.position(0, 35, 35, 0)
+            blf.size(0, 11, 72)
+            blf.draw(0, 'Mx: %s My: %s %s'%(mouse_x, mouse_y,self._regions))
+            blf.position(0, 35, 20, 0)
+            blf.size(0, 11, 72)
+            blf.draw(0, 'Mx: %s My: %s'%(self.mouse_x, self.mouse_y))
+
+
+
+    ## the modal function called from script events (TO DO)
+    def modal(self,self_mdl,context,event) :
+            city = bpy.context.scene.city
+            #dprint('modal')
+            #print('chui la')
+            if bpy.context.mode == 'OBJECT' and \
+            len(bpy.context.selected_objects) == 1 and \
+            type(bpy.context.active_object.data) == bpy.types.Mesh :
+                elm, grp, otl = city.elementGet('active',True)
+                if elm :
+                    if elm.className(False) == 'outlines' :
+                        otl.build()
+                    else :
+                        grp.build()
+            '''
+                if elm.className() == 'buildings' or elm.peer().className() == 'buildings' :
+                    dprint('rebuild')
+                    if elm.className() == 'buildings' :
+                        blg = elm
+                    else :
+                        blg = elm.peer()
+                    dprint('rebuild')
+                    blg.build(True)
+
+            if event.type in ['TAB','SPACE'] :
+                self.go_once = True
+
+            if event.type in ['G','S','R'] :
+                self.go=False
+                
+                if bpy.context.mode == 'OBJECT' and \
+                len(bpy.context.selected_objects) == 1 and \
+                type(bpy.context.active_object.data) == bpy.types.Mesh :
+                    elm = self.elementGet(bpy.context.active_object)
+                    if elm : self.go=True
+
+            elif event.type in ['ESC','LEFTMOUSE','RIGHTMOUSE'] :
+                    self.go=False
+                    self.go_once=False
+                    #dprint('modal paused.')
+                    #mdl.log = 'paused.'
+                    #context.region.callback_remove(self._handle)
+
+            if event.type == 'TIMER' and (self.go or self.go_once) :
+                        #self_mdl.log = 'updating...'
+
+                        #dprint('event %s'%(event.type))
+                        elm = self.elementGet(bpy.context.active_object)
+                        #dprint('modal acting')
+
+                        if elm.className() == 'buildings' or elm.peer().className() == 'buildings' :
+                            if elm.className() == 'buildings' :
+                                blg = elm
+                            else :
+                                blg = elm.peer()
+                            dprint('rebuild')
+                            blg.build(True)
+            #bpy.ops.object.select_name(name=self.name)
+                        self.go_once = False
+                        #if self.go == False : mdl.log = 'paused.'
+            '''
+
 
 #################################################
 ## set of generic update functions used in builders classes
 #################################################
+
 
 ## can be used by the update function of the panel properties of a builder
 #
@@ -148,6 +273,22 @@ class OP_BC_Selector(bpy.types.Operator) :
 def updateBuild(self,context='') :
     self = self.asGroup()
     self.build()
+
+
+#
+#
+def updateStartModal(self,context='') :
+    ui = bpy.context.scene.city.ui
+    helpers = ui.helpers
+    if ui.startmodal_updated == False :
+        ui.startmodal_updated = True
+        if ui.startmodal :
+            ui.startmodal = helpers.start()
+        else :
+            ui.startmodal = helpers.stop()
+        print('there')
+    else :
+        ui.startmodal_updated = False
 
 # checkbox trick for remove option
 # ui.updated = 3 since this func will be called 3 times each time because of update recursion.
@@ -243,6 +384,11 @@ class BC_City_ui(bpy.types.PropertyGroup) :
             items = [ ('builder','Main','builder properties'),\
                       ('materials','Materials','') ]
             )
+    
+    # modal buttons
+    startmodal_updated = bpy.props.BoolProperty()
+    startmodal = bpy.props.BoolProperty(update=updateStartModal)
+    
 ##################################################
 ## COMMON UIs PANEL
 ##################################################
@@ -274,14 +420,10 @@ def drawElementSelector(layout,elm) :
 
 ## draw start/stop modal buttons
 def drawModal(layout) :
-    modal = bpy.context.window_manager.modal
+    ui = bpy.context.scene.city.ui
     row = layout.row()
     row.label(text = 'AutoRefresh :')
-    if modal.status :
-        row.operator('wm.modal_stop',text='Stop')
-    else :
-        row.operator('wm.modal_start',text='Start')
-    row.operator('wm.modal',text='test')
+    row.prop(ui,'startmodal',text='%s'%('on' if ui.startmodal else 'off'))
 
 ## depending on the user selection in the 3d view, display the corresponding builder panel
 # if the selection exists in the elements class
@@ -323,32 +465,6 @@ def pollSelector(context, obj_mode = 'OBJECT') :
         if elm and ( otl.parent != '' or otl.childs != '' ) :
             return True
     return False
-
-class WM_OT_Panel_expand(bpy.types.Operator):
-    ''''''
-    bl_idname = "wm.panel_expand"
-    bl_label = ""
-
-    panel = bpy.props.StringProperty(name="toggle_panel", description="name of the panel to show/hide")
-
-    def execute(self, context):
-        city = bpy.context.scene.city
-        exec('city.ui.expand_%s = not city.ui.expand_%s'%(self.panel,self.panel))
-        return {'FINISHED'}
-
-def drawExpand(layout,section_name,section_tag,box=False) :
-        city = bpy.context.scene.city
-        expand = eval('city.ui.expand_%s'%(section_tag))
-        if box :
-            box = layout.box()
-            row = box.row()
-        else :
-            box = True
-            row = layout.row()
-        row.alignment = 'LEFT'
-        row.operator("wm.panel_expand", text=section_name, icon='TRIA_DOWN' if expand else 'TRIA_RIGHT', emboss=False).panel = section_tag
-        return box if expand else False
-
 
 def drawBuilderMaterials(layout,bld) :
     '''
@@ -470,14 +586,14 @@ class BC_outlines_panel(bpy.types.Panel) :
             blds = grp.Childs()
 
             # display info about selection
-            if drawExpand(layout,'outline : %s'%(otl.objectName()),'otl') :
+            if drawExpand(layout,'outline : %s'%(otl.objectName()),'scene.city.ui.expand_otl') :
                 box = layout.box()
                 row = box.row()
                 row.label( text = 'element name : %s'%(otl.name) )
                 row = box.row()
                 row.label( text = 'contains %s group%s'%(len(grps),'s' if len(grps) > 1 else '' ) )
 
-            if drawExpand(layout,'group : %s'%(grp.name),'grp') :
+            if drawExpand(layout,'group : %s'%(grp.name),'scene.city.ui.expand_grp') :
                 box = layout.box()
                 row = box.row()
                 row.label( text = 'builder : %s'%(grp.collection) )

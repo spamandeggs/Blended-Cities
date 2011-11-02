@@ -1,4 +1,19 @@
 import bpy
+# 2.6
+try : from bpy.types import Mesh, PointLamp, SpotLamp, HemiLamp, AreaLamp, SunLamp, Camera, TextCurve, MetaBall, Lattice, Armature
+# 2.59
+except :
+    Mesh = bpy.types.Mesh
+    PointLamp = bpy.types.PointLamp
+    SpotLamp = bpy.types.SpotLamp
+    HemiLamp = bpy.types.HemiLamp
+    AreaLamp = bpy.types.AreaLamp
+    SunLamp = bpy.types.SunLamp
+    Camera = bpy.types.Camera
+    TextCurve = bpy.types.TextCurve
+    MetaBall = bpy.types.MetaBall
+    Lattice = bpy.types.Lattice
+    Armature = bpy.types.Armature
 
 ## returns an object or a list of objects
 # @param ob 'all', 'active', 'selected', <object>, 'objectname'
@@ -16,8 +31,9 @@ def returnObject(ob) :
 
 def dprint(str,level=1) :
     city = bpy.context.scene.city
-    if level <= city.debuglevel :
-        print(str)
+    city.log.prt(str,level)
+    #if level <= city.debuglevel :
+    #    print(str)
 
 ## 
 def display(elm, arg = 'outline', detail = True) :
@@ -48,6 +64,7 @@ def display(elm, arg = 'outline', detail = True) :
                 print('{:^25}|{:^25}|{:^25}'.format(childname,child.objectName(),child.className()))
             print('{:^77}\n'.format('-'*77))
     if detail == False : print('{:^77}\n'.format('-'*77))
+
 
 ## remove an object from blender internal
 def wipeOutObject(ob,and_data=True) :
@@ -94,25 +111,25 @@ def wipeOutData(data) :
             data.user_clear()
             print('  removing data %s...'%(data.name))
             # mesh
-            if type(data) == bpy.types.Mesh :
+            if type(data) == Mesh :
                 bpy.data.meshes.remove(data)
             # lamp
-            elif type(data) in [bpy.types.PointLamp,bpy.types.SpotLamp,bpy.types.HemiLamp,bpy.types.AreaLamp,bpy.types.SunLamp] :
+            elif type(data) in [ PointLamp, SpotLamp, HemiLamp, AreaLamp, SunLamp ] :
                 bpy.data.lamps.remove(data)
             # camera
-            elif type(data) == bpy.types.Camera :
+            elif type(data) == Camera :
                 bpy.data.cameras.remove(data)
             # Text, Curve
-            elif type(data) in [ bpy.types.Curve, bpy.types.TextCurve ] :
+            elif type(data) in [ Curve, TextCurve ] :
                 bpy.data.curves.remove(data)
             # metaball
-            elif type(data) == bpy.types.MetaBall :
+            elif type(data) == MetaBall :
                 bpy.data.metaballs.remove(data)
             # lattice
-            elif type(data) == bpy.types.Lattice :
+            elif type(data) == Lattice :
                 bpy.data.lattices.remove(data)
             # armature
-            elif type(data) == bpy.types.Armature :
+            elif type(data) == Armature :
                 bpy.data.armatures.remove(data)
             else :
                 print('  data still here : forgot %s type'%type(data))

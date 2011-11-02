@@ -57,21 +57,38 @@ def zcoords(vertslists,offset=0) :
             zlist[ v[2] + offset ] += 1
     return zlist
 
+## FACES CREATION FUNCS
+
 ## returns faces for a loop of vertices
 # the index of theses vertices are supposed to be ordered (anticlock)
 # @param offset int index of the first vertex of the lie/poly
 # @param length int number of verts defining a line or a poly, they are supposed to be ordered
 # @param line bool True if is a line, False (default) if is a poly
+# @normals (default True) normal directions. anticlock verts order point 'up'
 # @param loop TODO number of layers of faces
-# @return quad faces
-def facesLoop(offset,length,line=False,loop=1) :
+# @return list of quadratic faces
+def facesLoop(offset,length,line=False,normals=True) :
     faces = []
     for v1 in range(length) :
         if v1 == length - 1 :
             if line : return faces
             v2 = 0
         else : v2 = v1 + 1
-        faces.append( ( offset + v1 , offset + v1 + length , offset + v2 + length, offset + v2  ) )
+        if normals : faces.append( ( offset + v1, offset + v2, offset + v2 + length, offset + v1 + length  ) )
+        else : faces.append( ( offset + v2, offset + v1, offset + v1 + length, offset + v2 + length ) )
+    return faces
+
+
+## like tesselate but with an optional index offset giving the first vert index
+# @param list of vertices. vertices are in Vector format, in anticlock order
+# @offset the first vertex index
+# @normals (default True) normals point 'up'
+# @return list of faces
+def fill(vertlist,offset=0,normals=True) :
+    if normals : vertlist.reverse()
+    faces = geometry.tesselate_polygon([vertlist])
+    if offset != 0 :
+        for i,f in enumerate(faces) : faces[i] = ( f[0] + offset, f[1] + offset, f[2] + offset )
     return faces
 
 
@@ -92,6 +109,98 @@ def edgesLoop(offset,length,line=False,loop=1) :
         edges.append([ offset + v1, offset + v2 ])
     return edges
 
+
+## convert an edge into a poly
+def edgesEnlarge(lines,width,typep="vector") :
+    try :
+        a=lines[0][0][0]
+        one=False
+    except :
+        lines=[lines]
+        one=True
+    newpolys=[]
+    #print "IN :",lines[0]
+    if typep == "coord" : lines = coordToVec(lines,False)
+    #print "OUT :",lines[0]
+
+    for li,line in enumerate(lines) :
+        pdeb=False
+        if pdeb : dprint("input %s"%line)
+        poly2=[]
+        v=1
+        a=Vector(line[0])
+        w=width*0.5
+        
+        if pdeb : dprint("_____________________________")
+
+        while v < len(line) :
+            #dprint( a,v
+            sz,rot=readVec(line[v])
+            if v==1 :
+                if pdeb : dprint( 'start at %s'%a)
+                b=a+writeVec(w,rot-90)
+                c=b+writeVec(sz-w,rot)
+                # first point
+                b2=b+writeVec(w,rot)
+                poly2.append(b2)
+                if len(line)==2 :poly2.append(c)
+            else :
+                d=a+writeVec(w,rot-90)
+                e=d+writeVec(sz-w,rot)
+                if pdeb : 
+                    dprint( "b %s c %s"%(b,c))
+                    dprint( "d %s e %s"%(d,e))
+                interlist = geometry.intersect_line_line(b,c,d,e)
+                if type(interlist)==tuple and str(interlist[0][0]) != 'nan' :
+                    poly2.append(Vector([interlist[0][0],interlist[0][1],line[v][2]]))
+                elif pdeb : dprint( "inter rate")
+                if v==len(line)-1 :
+                    poly2.append(e)
+                b=Vector(d[:])
+                c=Vector(e[:])
+                if pdeb : dprint( poly2)
+            a=a+Vector(line[v])
+            v +=1
+        v=len(line)-1
+        if pdeb : dprint( "back")
+        while v > 0 :
+            #dprint( a,v
+            sz,rot=readVec(line[v])
+            if v==len(line)-1 :
+                b=a+writeVec(w,rot+90)+writeVec(w,rot-180)
+                poly2.append(b)
+                c=b-writeVec(sz-width,rot)
+                if pdeb : dprint( "b %s c %s"%(b,c))
+                if len(line)==2 :poly2.append(c)
+            else :
+                d=a+writeVec(w,rot+90)
+                e=d-Vector(line[v])
+                if pdeb : 
+                    dprint( "b %s c %s"%(b,c))
+                    dprint( "d %s e %s"%(d,e))
+                interlist = geometry.intersect_line_line(b,c,d,e)
+                if type(interlist)==tuple and str(interlist[0][0]) != 'nan' :
+                    poly2.append(Vector([interlist[0][0],interlist[0][1],line[v][2]]))
+                elif pdeb :  dprint( "inter rate" )
+                if v==1 :
+                    l,r=readVec(e-d)
+                    e=d+writeVec(l-w,r)
+                    poly2.append(e)
+                
+                b=Vector(d[:])
+                c=Vector(e[:])
+                if pdeb : dprint( poly2 )
+            a=a-Vector(line[v])
+            v -=1            
+            
+
+        if pdeb : dprint( "out : %s \n"%poly2)
+        newpolys.append(poly2)
+
+    if one : return newpolys[0]
+    else : return newpolys
+
+
 ##############
 ## CONVERTERS
 ##############
@@ -105,7 +214,7 @@ def coordToVec(polys,ispoly=True,nocheck=False) :
     polys, nest = nested(polys)
     for ip,poly in enumerate(polys) :
         if len(poly)>1 :
-            #print poly
+            #dprint( poly
             c=Vector(poly[0])
             vecs=[c]
             if ispoly : l=len(poly)
@@ -181,14 +290,6 @@ def metersToBu(vertslists) :
     else : return meterslists[0]
 
 
-## like tesselate but with an optional index offset giving the first vert index
-# @param list of vertices. vertices are in Vector format.
-# @offset index of the first vertex
-# @return list of faces
-def fill(vertlist,offset=0) :
-    faces = geometry.tesselate_polygon([vertlist])
-    for i,f in enumerate(faces) : faces[i] = ( f[0] + offset, f[1] + offset, f[2] + offset )
-    return faces
 
 
 ##  determine if a point is inside a given polygon or not
@@ -224,7 +325,7 @@ def pointInPoly(x,y,poly,ptype="coord"):
 def polyIn(polys,width,ptype="vector",lst=[],pdeb=False) :
     global debug
     pdeb = True
-    if pdeb : print('polyin :')
+    if pdeb : dprint('polyin :')
 
     polys, nest = nested(polys)
 
@@ -567,9 +668,9 @@ def polyInter(polys,ptype="vector",sameNum=False,list=[]) :
     
     #  remove lines
     for p in polys[:] :
-        if len(p)<3 : polys.remove(p)
+        if len(p) < 3 : polys.remove(p)
     
-    if len(list)>0 :
+    if len(list) > 0 :
         for i,poly in enumerate(list) :
             polys.insert(i,poly)
     if ptype=="vector" :polys=coordToVec(polys,True,True)

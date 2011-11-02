@@ -84,6 +84,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
         edges = []
         faces = []
         mats  = []
+        uvs  = []
         mat_floor = 0
         mat_inter = 1
         mat_roof  = 2
@@ -108,6 +109,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
                             verts.append( Vector(( c[0],c[1],c[2] + 1 )) )
                         faces.extend(facesLoop(fof,fpf,True))
                         mats.extend( mat_wall for i in range(fpf-1) )
+                        #uvs.extend(uvrow(verts,faces))
                         fof += fpf * 2
                 else :
                     for line in lines :
@@ -118,6 +120,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
                             verts.extend(line)
                             faces.extend(facesLoop(fof,fpf,True))
                             mats.extend( mat_floor for i in range(fpf-1) )
+                            #uvs.extend(uvrow(verts,faces))
                             fof += fpf
 
                         zs = self.heights(max(zlist))#bounds[2][0])
@@ -130,6 +133,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
                                 faces.extend( facesLoop(fof,fpf,True) )
                                 mat_id = zi%2
                                 mats.extend( mat_id for i in range(fpf-1) )
+                                #uvs.extend(uvrow(verts,faces))
                             fof += fpf
         
             if len(perimeter) > 0 :
@@ -140,28 +144,32 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
                     # non planar outlines : add simple fundations. todo : should be part of floors
                     if max(zlist) - min(zlist) > 0.000001 :
                         verts.extend( perimeter[id] )
-                        faces.extend( facesLoop(fof,fpf) )
+                        faces.extend( facesLoop(fof,fpf,False) )
                         mats.extend( mat_floor for i in range(fpf) )
+                        #uvs.extend(uvrow(verts,faces))
                         fof += fpf
 
                     zs = self.heights(max(zlist))#bounds[2][0])
                     for zi,z in enumerate(zs) :
                         for c in perimeter[id] :
-                            verts.append( Vector(( c[0],c[1],z )) )
+                            verts.append( Vector(( c.x,c.y,z )) )
                         
                         # while roof not reached, its a floor so add faces and mats
                         if z != zs[-1] : 
-                            faces.extend( facesLoop(fof,fpf) )
+                            faces.extend( facesLoop(fof,fpf,False) )
                             mat_id = zi%2
                             mats.extend( mat_id for i in range(fpf) )
+                            #uvs.extend(uvrow(verts,faces))
                         # else fills the roof
                         else :
-                            roof = fill(verts[-fpf:],fof)
+                            vertroof = verts[-fpf:]
+                            roof = fill(vertroof,fof)
                             mats.extend( mat_roof for i in range(len(roof)) )
                             faces.extend( roof )
+                            #uvs.extend(uvrow(verts,faces))
                         fof += fpf
-
-            buildings = [verts, [], faces,  mats]
+            uvs.extend(uvrow(verts,faces))
+            buildings = [verts, [], faces,  mats, [uvs] ]
             return [ buildings ]
 
         else :
@@ -195,8 +203,7 @@ class BC_buildings(BC_elements,bpy.types.PropertyGroup) :
  
     def height(self,offset=0) :
         return self.heights(offset)[-1]
-
-
+    
 ## building builder user interface class
 class BC_buildings_panel(bpy.types.Panel) :
     bl_label = 'Buildings'
