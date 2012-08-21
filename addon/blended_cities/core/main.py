@@ -59,8 +59,11 @@ class BlendedCities(bpy.types.PropertyGroup) :
 
     debuglevel = bpy.props.IntProperty(default=1)
     builders_info = {} # info about builder authoring, should be a collection too. usage, could use bl_info..
-    path = bpy.utils.script_paths('addons/blended_cities/')[0]
-
+    
+    path_addon = __file__[:-12]
+    path_builders = bpy.props.StringProperty(default=path_addon + 'builders')
+    path_library = bpy.props.StringProperty(default=path_addon + 'library')
+    
     bc_go = bpy.props.BoolProperty()
     bc_go_once = bpy.props.BoolProperty()
 

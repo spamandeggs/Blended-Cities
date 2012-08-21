@@ -47,10 +47,10 @@ def register_default_builders():
     '''seek the builders folders for existing builders classes (and their gui)'''
     # seek and register
     mod = sys.modules['blended_cities']
-    builders_dir = mod.__path__[0] + '/builders'
+    path_builders = mod.__path__[0] + '/builders'
     global builders_list
     print('\n. builders :')
-    for file in os.listdir(builders_dir) :
+    for file in os.listdir(path_builders) :
         if file[0:4] == 'bld_' and file[-3:]=='.py':
             classname = 'BC_'+file[4:-3]
             exec('from blended_cities.builders.%s import *'%file[0:-3],globals())

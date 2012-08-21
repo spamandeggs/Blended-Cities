@@ -12,10 +12,16 @@ from blended_cities.utils.geo import *
  
 def dprint(str,lvl) :
     print(str)
-    
+
 def matToString(mat) :
     #print('*** %s %s'%(mat,type(mat)))
-    return str(mat).replace('\n       ','')[6:]
+    #return str(mat).replace('\n       ','')[6:]
+    print('matToString : %s'%str(list(mat)))
+    return str(list(mat))
+
+#def matToString(mat) :
+    #print('*** %s %s'%(mat,type(mat)))
+#    return str(mat).replace('\n       ','')[6:]
 
 def stringToMat(string) :
     return Matrix(eval(string))
@@ -242,7 +248,9 @@ def objectBuild(elm, verts, edges=[], faces=[], matslots=[], mats=[], uvs=[] ) :
 
 ## material MUST exist before creation of material slots
 ## map only uvmap 0 to its image defined in mat  for now (multitex view)
-def createMeshObject(name, replace=False, verts=[], edges=[], faces=[], matslots=[], mats=[], uvs=[]) :
+def createMeshObject(name, replace=False, 
+verts=[], edges=[], faces=[], 
+matslots=[], mats=[], uvs=[]) :
 
     if replace :
         # naming consistency for mesh w/ one user
@@ -291,11 +299,13 @@ def createMeshObject(name, replace=False, verts=[], edges=[], faces=[], matslots
 
     # map a material to each face
     if len(mats) > 0 :
-        for fi,f in enumerate(mesh.faces) :
+        for fi,f in enumerate(mesh.polygons) :
             f.material_index = mats[fi]
 
     # uvs
     if len(uvs) > 0 :
+        uvwrite(mesh, uvs, matimage)
+        '''
         for uvi, uvlist in enumerate(uvs) :
             uv = mesh.uv_textures.new()
             uv.name = 'UV%s'%uvi
@@ -314,7 +324,7 @@ def createMeshObject(name, replace=False, verts=[], edges=[], faces=[], matslots
                 uv.data[uvfi].uv3 = Vector((uvface[4],uvface[5]))
                 if len(uvface) == 8 :
                     uv.data[uvfi].uv4 = Vector((uvface[6],uvface[7]))
-
+        '''
 
     if name not in bpy.data.objects or replace == False :
         ob = bpy.data.objects.new(name=name, object_data=mesh)
@@ -329,6 +339,35 @@ def createMeshObject(name, replace=False, verts=[], edges=[], faces=[], matslots
         bpy.context.scene.objects.link(ob)
     return ob
 
+# copy of bel.uv.write
+def uvwrite(me, uvs, matimage = False) :
+    uvs, nest = nested(uvs)
+    newuvs = []
+    # uvi : uvlayer id  uvlist : uv coordinates list
+    for uvi, uvlist in enumerate(uvs) :
+
+        uv = me.uv_textures.new()
+        uv.name = 'UV%s'%uvi
+        
+        uvlayer = me.uv_layers[-1].data
+        
+        for uvfi, uvface in enumerate(uvlist) :
+            #uv.data[uvfi].use_twoside = True # 2.60 changes mat ways
+            mslotid = me.polygons[uvfi].material_index
+            #mat = mesh.materials[mslotid]
+            if matimage :
+                if matimage[mslotid] :
+                    img = matimage[mslotid]
+                    uv.data[uvfi].image=img
+            
+            vi = 0
+            for fi in me.polygons[uvfi].loop_indices :
+                uvlayer[fi].uv = Vector((uvface[vi],uvface[vi+1]))
+                vi += 2
+                
+        newuvs.append(uv)
+    if nest : return newuvs
+    return newuvs[0]
 
 def materialsCheck(bld) :
     if hasattr(bld,'materialslots') == False :

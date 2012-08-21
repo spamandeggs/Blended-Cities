@@ -380,6 +380,11 @@ class BC_City_ui(bpy.types.PropertyGroup) :
             description = 'Remove parented elements/objects'
             )
 
+    main_tabs = bpy.props.EnumProperty(
+            items = [ ('setup','Setup',''),\
+                      ('tools','Tools','') ]
+            )
+    
     builder_tabs = bpy.props.EnumProperty( 
             items = [ ('builder','Main','builder properties'),\
                       ('materials','Materials','') ]
@@ -538,9 +543,22 @@ class BC_main_panel(bpy.types.Panel) :
         city = scene.city
         layout  = self.layout
         layout.alignment  = 'CENTER'
-        drawMainbuildingsTool(layout)
+        
+        #  TABS
+        row = layout.row(align=True)
+        row.scale_y = 1.3
+        row.prop_enum(city.ui,'main_tabs','setup')
+        row.prop_enum(city.ui,'main_tabs','tools')
+        
+        if city.ui.main_tabs == 'setup' :
+            col = layout.column()
+            col.label(text='Library path :')
+            col.prop(city,'path_library')
+            
+        elif city.ui.main_tabs == 'tools' :
+            drawMainbuildingsTool(layout)
 
-        drawModal(layout)
+            drawModal(layout)
 
 ####################################################
 ## the Outlines panel (OBJECT MODE)

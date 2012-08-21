@@ -6,6 +6,7 @@ from math import *
 
 import bpy
 import mathutils
+from mathutils import geometry
 from mathutils import *
 from blended_cities.core.common import *
 
@@ -79,14 +80,14 @@ def facesLoop(offset,length,line=False,normals=True) :
     return faces
 
 
-## like tesselate but with an optional index offset giving the first vert index
+## like tessellate but with an optional index offset giving the first vert index
 # @param list of vertices. vertices are in Vector format, in anticlock order
 # @offset the first vertex index
 # @normals (default True) normals point 'up'
 # @return list of faces
 def fill(vertlist,offset=0,normals=True) :
     if normals : vertlist.reverse()
-    faces = geometry.tesselate_polygon([vertlist])
+    faces = geometry.tessellate_polygon([vertlist])
     if offset != 0 :
         for i,f in enumerate(faces) : faces[i] = ( f[0] + offset, f[1] + offset, f[2] + offset )
     return faces

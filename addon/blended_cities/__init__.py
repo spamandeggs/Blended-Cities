@@ -53,7 +53,7 @@ if __name__ != "__main__" :
         from blended_cities.utils.meshes_io import *
         from blended_cities.core.ui import *
         from blended_cities.core.main import *
-        print()
+
 
 else :
     print('\n%s init as text\n'% __name__)

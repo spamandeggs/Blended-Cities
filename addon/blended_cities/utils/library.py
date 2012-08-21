@@ -8,8 +8,8 @@ def libraryGet(request) :
 
     # define request
     city = bpy.context.scene.city
-    path = city.path
-    file = 'library/default_props_v0.2.blend'
+    path = city.path_library
+    file = '/default_props_v0.2.blend'
     groupname = request
 
     if groupname not in bpy.data.groups :
@@ -54,6 +54,7 @@ def objectAppend(otl,request,c) :
     # twice for the last, to force parenting update else it won't move (2.58a)
     #obnew.parent = otl.object()
     '''
+
     # WHEN GROUP IS LINKED (the group itself is an ob)
     bpy.ops.object.group_instance_add(group = group.name)
     obnew = bpy.context.active_object

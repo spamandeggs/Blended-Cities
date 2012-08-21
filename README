@@ -2,6 +2,9 @@ Blended Cities for the new blender releases ( > 2.5 )
 continuation of a procedural city project begun with 2.4x :
 http://jerome.le.chat.free.fr/index.php/en/city-engine/documentation/introduction.html
 
+2012/08/21
+. quickly updated code for 2.63a bpy
+
 2011/11/03
 . hey I'm not john doe dear Im littleneo :) 
 . added uv support for tile-mapping and test textures in \library\textures
