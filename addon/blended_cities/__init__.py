@@ -18,14 +18,14 @@
 bl_info = {
     "name": "Blended Cities",
     "description": "A city builder",
-    "author": "Jerome Mahieux (Littleneo)",
+    "author": "Jerome Mahieux (Littleneo), Thomas Portassau (50thomatoes50)",
     "version": (0, 5),
     "blender": (2, 5, 8),
     "api": 37702,
-    "location": "",
-    "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
+    "location": "https://github.com/littleneo/Blended-Cities",
+    "warning": "Still in development",
+    "wiki_url": "https://github.com/littleneo/Blended-Cities/wiki",
+    "tracker_url": "https://github.com/littleneo/Blended-Cities/issues",
     "category": "Object"
 }
  
@@ -44,10 +44,11 @@ if __name__ != "__main__" :
     else:
         print('\n. load modules\n')
         import bpy
+        from bpy.app.handlers import persistent
         ## helpers
         from blended_cities.utils.log_tools import LoggerLogs, Logger, LoggerPopup, LoggerConsole
         from blended_cities.utils.log_tools import register as log_install, unregister as log_uninstall
-        import blended_cities.utils.vmodal as modal
+        from blended_cities.utils import vmodal as modal
         from blended_cities.core.class_main import *
         from blended_cities.core.class_import import *
         from blended_cities.utils.meshes_io import *
@@ -60,7 +61,16 @@ else :
     print('\nNOT IMPLEMENTED :\n')
     john_doe()
  
-    
+@persistent
+def add_materials():
+    """Blender scan this file first and them execute it.
+    The first time bpy.data is locked
+    more information at https://blender.stackexchange.com/questions/8702/attributeerror-restrictdata-object-has-no-attribute-filepath"""
+    items=[('niet','niet','')]
+    for m in bpy.data.materials :
+        items.append( (m.name,m.name,'') )
+    BC_City_ui.matmenu = bpy.props.EnumProperty(items=items) 
+
 def register() :
 
         # For now they need to be registered first due to: http://wiki.blender.org/index.php/Dev:2.5/Py/API/Overview#Manipulating-Classes
@@ -102,11 +112,8 @@ def register() :
 
         #bpy.types.Scene.city.ui = bpy.props.PointerProperty(type=BC_City_ui)
         BlendedCities.builders = bpy.props.PointerProperty(type=BC_builders)
-        items=[('niet','niet','')]
-        for m in bpy.data.materials :
-            items.append( (m.name,m.name,'') )
-        BC_City_ui.matmenu = bpy.props.EnumProperty(items=items)
-
+        #add_materials()
+        bpy.app.handlers.save_post.append(add_materials)
 
 def unregister() :
 
@@ -139,6 +146,8 @@ def unregister() :
 
     # operators
     bpy.utils.unregister_class(OP_BC_cityMethods)
+    
+    unregister_default_builders()
 
     log_uninstall()
     '''
